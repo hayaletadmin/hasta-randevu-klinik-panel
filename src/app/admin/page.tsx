@@ -3,7 +3,9 @@
 // Force dynamic rendering to prevent build-time errors
 export const dynamic = 'force-dynamic';
 
-import React from 'react';
+import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
+import type { Appointment } from '@/lib/supabase';
 import {
     Users,
     CalendarCheck,
@@ -13,10 +15,13 @@ import {
     ChevronRight,
     MoreVertical,
     Download,
-    Plus
+    Plus,
+    Clock,
+    ArrowRight
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
 
 const StatCard = ({ title, value, change, trend, icon, color }: any) => (
     <Card className="border-none shadow-sm transition-all hover:shadow-md bg-card">
@@ -43,6 +48,41 @@ const StatCard = ({ title, value, change, trend, icon, color }: any) => (
 );
 
 export default function AdminDashboard() {
+    const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
+
+    useEffect(() => {
+        const fetchUpcomingAppointments = async () => {
+            const today = new Date();
+            const threeDaysLater = new Date();
+            threeDaysLater.setDate(today.getDate() + 3);
+
+            const todayStr = today.toISOString().split('T')[0];
+            const endStr = threeDaysLater.toISOString().split('T')[0];
+
+            const { data, error } = await supabase
+                .from('appointments')
+                .select(`
+                    *,
+                    patients (full_name),
+                    doctors (full_name),
+                    procedures (name),
+                    departments (name)
+                `)
+                .gte('appointment_date', todayStr)
+                .lte('appointment_date', endStr)
+                .order('appointment_date', { ascending: true })
+                .order('appointment_time', { ascending: true })
+                .limit(5);
+
+            if (error) {
+                console.error('Error fetching upcoming appointments:', error);
+            } else {
+                setUpcomingAppointments(data || []);
+            }
+        };
+
+        fetchUpcomingAppointments();
+    }, []);
     return (
         <div className="space-y-8">
 
@@ -296,38 +336,54 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
 
-                {/* Memnuniyet Oranı */}
+                {/* Yaklaşan Randevular */}
                 <Card className="border-none shadow-sm dark:bg-slate-900">
-                    <CardContent className="p-6">
+                    <CardContent className="p-6 h-full flex flex-col">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-bold text-gray-900 dark:text-white">Memnuniyet Oranı</h3>
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-lg">
-                                <span className="text-lg leading-none">😊</span> %94 <span className="text-[10px] text-teal-500">+%4.3</span>
-                            </div>
+                            <h3 className="font-bold text-gray-900 dark:text-white">Yaklaşan Randevular</h3>
+                            <Link href="/admin/randevular" className="flex items-center gap-1 text-xs font-bold text-teal-600 hover:text-teal-700 transition-colors">
+                                Tümü <ArrowRight size={14} />
+                            </Link>
                         </div>
 
-                        <div className="h-32 w-full mt-10">
-                            <svg className="w-full h-full overflow-visible">
-                                <path
-                                    d="M0,80 L80,60 L160,70 L240,50 L320,65 L400,40"
-                                    fill="none"
-                                    stroke="#3B82F6"
-                                    strokeWidth="3"
-                                    style={{ strokeLinejoin: 'round', strokeLinecap: 'round' }}
-                                />
-                                {[
-                                    { x: 0, y: 80 }, { x: 80, y: 60 }, { x: 160, y: 70 }, { x: 240, y: 50 }, { x: 320, y: 65 }, { x: 400, y: 40 }
-                                ].map((p, i) => (
-                                    <circle key={i} cx={p.x} cy={p.y} r="3" fill="currentColor" className="text-white dark:text-slate-900" stroke="#3B82F6" strokeWidth="2" />
-                                ))}
-                            </svg>
-                        </div>
+                        <div className="flex-1 overflow-y-auto pr-1">
+                            {upcomingAppointments.length > 0 ? (
+                                <div className="space-y-3">
+                                    {upcomingAppointments.map((app) => (
+                                        <div key={app.id} className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-slate-800/50 hover:bg-teal-50 dark:hover:bg-teal-900/10 transition-colors group border border-transparent hover:border-teal-100 dark:hover:border-teal-900/30">
+                                            <div className="flex flex-col items-center justify-center min-w-12 h-12 bg-white dark:bg-slate-800 rounded-lg border border-gray-100 dark:border-slate-700 shadow-sm">
+                                                <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase">{new Date(app.appointment_date).toLocaleDateString('tr-TR', { month: 'short' })}</span>
+                                                <span className="text-sm font-black text-gray-900 dark:text-white">{new Date(app.appointment_date).getDate()}</span>
+                                            </div>
 
-                        <div className="mt-8">
-                            <p className="text-xs font-bold text-gray-900 dark:text-white">Hasta memnuniyeti %94 oranında</p>
-                            <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium leading-normal mt-1">
-                                Bu artış, hastaların klinik hizmetlerinden son derece memnun olduğunu göstermektedir.
-                            </p>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start">
+                                                    <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">{app.patients?.full_name}</h4>
+                                                    <div className="flex items-center gap-1 text-[10px] font-bold text-teal-600 bg-teal-50 dark:bg-teal-900/30 px-1.5 py-0.5 rounded ml-2 whitespace-nowrap">
+                                                        <Clock size={10} />
+                                                        {app.appointment_time.slice(0, 5)}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 truncate max-w-[120px]">
+                                                        {app.doctors?.full_name}
+                                                    </span>
+                                                    <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-slate-600"></span>
+                                                    <span className="text-[10px] text-gray-400 dark:text-gray-500 truncate">
+                                                        {app.procedures?.name || app.departments?.name}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="h-full flex flex-col items-center justify-center text-center text-gray-400 py-8">
+                                    <CalendarCheck size={32} className="opacity-20 mb-2" />
+                                    <p className="text-sm font-medium">Yaklaşan randevu yok</p>
+                                    <p className="text-xs opacity-60">Önümüzdeki 3 gün boş</p>
+                                </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>

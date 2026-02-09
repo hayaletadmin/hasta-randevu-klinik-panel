@@ -188,11 +188,18 @@ export function StepDateTime({ doctorId, onSelect, onBack, selectedDate, selecte
             const activeClosure = closures.find(c => {
                 if (c.closure_date !== localDate) return false;
                 if (c.target_type === 'clinic' || (c.target_type === 'doctor' && c.doctor_id === doctorId)) {
+                    // Full day closure
                     if (!c.start_time || !c.end_time) return true;
+                    // Time range closure
                     return timeStr >= c.start_time.slice(0, 5) && timeStr < c.end_time.slice(0, 5);
                 }
                 return false;
             });
+
+            if (activeClosure) {
+                isDisabled = true; // or just skip it
+                reason = "Kapalı";
+            }
 
             if (reason === "Ara" || reason === "Kapalı") {
                 current += settings.duration;

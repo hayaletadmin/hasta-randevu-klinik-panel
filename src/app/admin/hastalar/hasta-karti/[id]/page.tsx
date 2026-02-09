@@ -112,11 +112,11 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
     const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
     const [showAppUnsavedModal, setShowAppUnsavedModal] = useState(false);
     const [patientDocs, setPatientDocs] = useState<PatientDocument[]>([]);
-    const [uploadingDoc, setUploadingDoc] = useState<'anamnez' | 'onam' | null>(null);
+    const [uploadingDoc, setUploadingDoc] = useState<'anamnez' | 'onam' | 'ekbilgiler' | null>(null);
     const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
     const [uploadingFiles, setUploadingFiles] = useState<{ [key: string]: string }>({});
     const [previewDoc, setPreviewDoc] = useState<PatientDocument | null>(null);
-    const [isDragging, setIsDragging] = useState<'anamnez' | 'onam' | null>(null);
+    const [isDragging, setIsDragging] = useState<'anamnez' | 'onam' | 'ekbilgiler' | null>(null);
 
     // Form Data
     const [formData, setFormData] = useState({
@@ -464,7 +464,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
         }
     };
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'anamnez' | 'onam') => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'anamnez' | 'onam' | 'ekbilgiler') => {
         const file = e.target.files?.[0];
         if (!file) return;
         await handleFileUploadFromFile(file, type);
@@ -504,7 +504,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
         }
     };
 
-    const handleDragOver = (e: React.DragEvent, type: 'anamnez' | 'onam') => {
+    const handleDragOver = (e: React.DragEvent, type: 'anamnez' | 'onam' | 'ekbilgiler') => {
         e.preventDefault();
         e.stopPropagation();
         setIsDragging(type);
@@ -516,7 +516,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
         setIsDragging(null);
     };
 
-    const handleDrop = async (e: React.DragEvent, type: 'anamnez' | 'onam') => {
+    const handleDrop = async (e: React.DragEvent, type: 'anamnez' | 'onam' | 'ekbilgiler') => {
         e.preventDefault();
         e.stopPropagation();
         setIsDragging(null);
@@ -529,7 +529,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
         }
     };
 
-    const handleFileUploadFromFile = async (file: File, type: 'anamnez' | 'onam') => {
+    const handleFileUploadFromFile = async (file: File, type: 'anamnez' | 'onam' | 'ekbilgiler') => {
         // Boyut kontrolü (10MB)
         if (file.size > 10 * 1024 * 1024) {
             alert('Dosya boyutu 10MB\'dan büyük olamaz.');
@@ -1029,7 +1029,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                 </div>
                             </CardHeader>
                             <CardContent className="p-6 space-y-8">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                     {/* Anamnez Formu Area */}
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between">
@@ -1170,6 +1170,89 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                             )}
 
                                             {patientDocs.filter(d => d.file_type === 'onam').map(doc => (
+                                                <div key={doc.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800/50 rounded-xl border border-gray-100 dark:border-slate-800 hover:shadow-md transition-all group">
+                                                    <div className="flex items-center gap-3 overflow-hidden">
+                                                        <div className="h-8 w-8 rounded-lg bg-teal-50 dark:bg-teal-950 flex items-center justify-center text-teal-600 shrink-0">
+                                                            <FileText size={16} />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="text-xs font-bold text-gray-700 dark:text-gray-200 truncate">{doc.file_name}</p>
+                                                            <p className="text-[10px] text-gray-400">{(doc.file_size / 1024 / 1024).toFixed(2)} MB • {new Date(doc.created_at).toLocaleDateString('tr-TR')}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg text-gray-400 hover:text-blue-600" onClick={() => setPreviewDoc(doc)} title="Önizle">
+                                                            <ZoomIn size={14} />
+                                                        </Button>
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg text-gray-400 hover:text-green-600" onClick={() => handleDownloadDocument(doc.file_path, doc.file_name)} title="İndir">
+                                                            <Download size={14} />
+                                                        </Button>
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg text-gray-400 hover:text-red-600" onClick={() => handleDeleteDocument(doc.id, doc.file_path)} title="Sil">
+                                                            <Trash2 size={14} />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Ek Bilgiler Area */}
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <Label className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">EK BİLGİLER</Label>
+                                        </div>
+
+                                        <div
+                                            className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center transition-all group cursor-pointer relative overflow-hidden ${isDragging === 'ekbilgiler'
+                                                ? 'border-teal-500 bg-teal-50/50 dark:bg-teal-900/20 scale-[1.02]'
+                                                : 'border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/50'
+                                                }`}
+                                            onDragOver={(e) => handleDragOver(e, 'ekbilgiler')}
+                                            onDragLeave={handleDragLeave}
+                                            onDrop={(e) => handleDrop(e, 'ekbilgiler')}
+                                        >
+                                            <input
+                                                type="file"
+                                                className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                                accept=".pdf,.doc,.docx,.jpg,.png"
+                                                onChange={(e) => handleFileUpload(e, 'ekbilgiler')}
+                                                disabled={!!uploadingDoc}
+                                            />
+                                            <div className="h-14 w-14 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 mb-4 group-hover:scale-110 group-hover:bg-teal-50 dark:group-hover:bg-teal-900/20 group-hover:text-teal-600 transition-all duration-300">
+                                                <Plus size={28} />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                                                    {isDragging === 'ekbilgiler' ? 'Dosyayı bırakın' : 'Tıklayın veya sürükleyin'}
+                                                </p>
+                                                <p className="text-[10px] text-gray-400 font-medium">PDF, DOC, JPG (Maks. 10MB)</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Yüklenen & Yüklenmekte Olan Ek Bilgiler Dosyaları */}
+                                        <div className="space-y-2">
+                                            {/* Uploading State */}
+                                            {uploadingDoc === 'ekbilgiler' && (
+                                                <div className="p-3 bg-teal-50/50 dark:bg-teal-900/10 rounded-xl border border-teal-100/50 dark:border-teal-500/20 animate-pulse">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <div className="h-8 w-8 rounded-lg bg-teal-500 flex items-center justify-center text-white shrink-0">
+                                                            <Loader2 size={16} className="animate-spin" />
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="text-xs font-bold text-teal-700 dark:text-teal-400 truncate">{uploadingFiles['ekbilgiler']}</p>
+                                                            <p className="text-[10px] text-teal-600/70 font-bold uppercase tracking-tighter">Yükleniyor... %{uploadProgress['ekbilgiler']}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-teal-100 dark:bg-teal-900/30 rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-teal-500 transition-all duration-300 ease-out"
+                                                            style={{ width: `${uploadProgress['ekbilgiler']}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {patientDocs.filter(d => d.file_type === 'ekbilgiler').map(doc => (
                                                 <div key={doc.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800/50 rounded-xl border border-gray-100 dark:border-slate-800 hover:shadow-md transition-all group">
                                                     <div className="flex items-center gap-3 overflow-hidden">
                                                         <div className="h-8 w-8 rounded-lg bg-teal-50 dark:bg-teal-950 flex items-center justify-center text-teal-600 shrink-0">

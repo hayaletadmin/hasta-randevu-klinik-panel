@@ -249,7 +249,36 @@ export const createPatient = async (patientData: Omit<Patient, 'id'>): Promise<P
 };
 
 export const createAppointment = async (appointmentData: Omit<Appointment, 'id'>): Promise<any> => {
-    // Check for existing appointment for the same doctor, date, and time
+    // 1. Check for Closures (Klinik veya Doktor kapalı mı?)
+    if (appointmentData.appointment_date) {
+        const { data: closures } = await supabase
+            .from('closures')
+            .select('*')
+            .eq('closure_date', appointmentData.appointment_date)
+            .eq('is_active', true);
+
+        if (closures && closures.length > 0) {
+            for (const closure of closures) {
+                // Check coverage: Clinic-wide OR Specific Doctor
+                const isClinicClosure = closure.target_type === 'clinic';
+                const isDoctorClosure = closure.target_type === 'doctor' && closure.doctor_id === appointmentData.doctor_id;
+
+                if (isClinicClosure || isDoctorClosure) {
+                    // Full day closure (if start/end times are missing or empty)
+                    if (!closure.start_time || !closure.end_time) {
+                        throw new Error(`Seçilen tarihte ${isClinicClosure ? 'klinik' : 'seçilen doktor'} hizmet vermemektedir (Kapalı).`);
+                    }
+
+                    // Time range closure
+                    if (appointmentData.appointment_time >= closure.start_time && appointmentData.appointment_time < closure.end_time) {
+                        throw new Error(`Seçilen saat aralığında (${closure.start_time} - ${closure.end_time}) hizmet verilmemektedir.`);
+                    }
+                }
+            }
+        }
+    }
+
+    // 2. Check for existing appointment for the same doctor, date, and time
     // Only check if doctor_id, appointment_date, and appointment_time are present
     if (appointmentData.doctor_id && appointmentData.appointment_date && appointmentData.appointment_time) {
         const { data: existingApp, error: checkError } = await supabase
@@ -622,7 +651,7 @@ export type PatientDocument = {
     patient_id: string;
     file_path: string;
     file_name: string;
-    file_type: 'anamnez' | 'onam';
+    file_type: 'anamnez' | 'onam' | 'ekbilgiler';
     content_type: string;
     file_size: number;
 };
@@ -630,7 +659,7 @@ export type PatientDocument = {
 export const uploadPatientDocument = async (
     file: File,
     patientId: string,
-    fileType: 'anamnez' | 'onam'
+    fileType: 'anamnez' | 'onam' | 'ekbilgiler'
 ) => {
     // 1. Dosyayı Storage'a yükle
     const fileExt = file.name.split('.').pop();
@@ -762,7 +791,7 @@ export const createNotification = async (notification: Omit<AppNotification, 'id
         .single();
 
     if (error) {
-        console.error('Error creating notification:', error);
+        console.error('Error creating notification:', error.message, error.details, error.hint, error.code);
         // Do not throw error here to avoid breaking main flow if notification fails (unless critical table missing)
     }
     return data;

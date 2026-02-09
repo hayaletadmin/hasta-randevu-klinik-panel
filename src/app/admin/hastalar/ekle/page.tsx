@@ -9,7 +9,8 @@ import {
     Save,
     Check,
     Loader2,
-    ChevronLeft
+    ChevronLeft,
+    Plus
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -84,6 +85,7 @@ export default function AddPatientPage() {
     // Mock Document State (Visual Only for now)
     const [anamnezFile, setAnamnezFile] = useState<File | null>(null);
     const [onamFile, setOnamFile] = useState<File | null>(null);
+    const [ekBilgilerFile, setEkBilgilerFile] = useState<File | null>(null);
 
     // Helper: TCKN Validation
     const validateTCKN = (value: string) => {
@@ -173,11 +175,12 @@ export default function AddPatientPage() {
         }
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'anamnez' | 'onam') => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'anamnez' | 'onam' | 'ekbilgiler') => {
         if (e.target.files && e.target.files[0]) {
             setIsDirty(true); // Mark as dirty
             if (type === 'anamnez') setAnamnezFile(e.target.files[0]);
-            else setOnamFile(e.target.files[0]);
+            else if (type === 'onam') setOnamFile(e.target.files[0]);
+            else setEkBilgilerFile(e.target.files[0]);
         }
     };
 
@@ -497,56 +500,89 @@ export default function AddPatientPage() {
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {/* Anamnez Formu Area */}
-                                <div className="space-y-3">
-                                    <Label className="text-xs font-bold text-gray-900 dark:text-white">ANAMNEZ FORMU</Label>
-                                    <div className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer relative">
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">ANAMNEZ FORMU</Label>
+                                    </div>
+                                    <div className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-all group cursor-pointer relative overflow-hidden">
                                         <input
                                             type="file"
-                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                            className="absolute inset-0 opacity-0 cursor-pointer z-10"
                                             onChange={(e) => handleFileChange(e, 'anamnez')}
                                             accept=".pdf,.doc,.docx,.jpg,.png"
                                         />
-                                        <div className="h-12 w-12 bg-teal-50 dark:bg-teal-900/20 rounded-full flex items-center justify-center text-teal-600 dark:text-teal-400 mb-3 group-hover:scale-110 transition-transform">
-                                            <FileText size={24} />
+                                        <div className="h-14 w-14 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 mb-4 group-hover:scale-110 group-hover:bg-teal-50 dark:group-hover:bg-teal-900/20 group-hover:text-teal-600 transition-all duration-300">
+                                            <Plus size={28} />
                                         </div>
                                         {anamnezFile ? (
                                             <div className="space-y-1">
-                                                <p className="text-sm font-bold text-teal-600 truncate max-w-[200px]">{anamnezFile.name}</p>
+                                                <p className="text-sm font-bold text-teal-600 dark:text-teal-400 truncate max-w-[200px]">{anamnezFile.name}</p>
                                                 <p className="text-xs text-gray-400">{(anamnezFile.size / 1024 / 1024).toFixed(2)} MB</p>
                                             </div>
                                         ) : (
                                             <div className="space-y-1">
-                                                <p className="text-sm font-bold text-gray-600 dark:text-gray-300">Dosya Seçin veya Sürükleyin</p>
-                                                <p className="text-[10px] text-gray-400">PDF, Word veya Görsel (Max 10MB)</p>
+                                                <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Tıklayın veya sürükleyin</p>
+                                                <p className="text-[10px] text-gray-400 font-medium">PDF, DOC, JPG (Maks. 10MB)</p>
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
                                 {/* Onam Formu Area */}
-                                <div className="space-y-3">
-                                    <Label className="text-xs font-bold text-gray-900 dark:text-white">ONAM FORMU</Label>
-                                    <div className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer relative">
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">ONAM FORMU</Label>
+                                    </div>
+                                    <div className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-all group cursor-pointer relative overflow-hidden">
                                         <input
                                             type="file"
-                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                            className="absolute inset-0 opacity-0 cursor-pointer z-10"
                                             onChange={(e) => handleFileChange(e, 'onam')}
                                             accept=".pdf,.doc,.docx,.jpg,.png"
                                         />
-                                        <div className="h-12 w-12 bg-purple-50 dark:bg-purple-900/20 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 mb-3 group-hover:scale-110 transition-transform">
-                                            <Check size={24} />
+                                        <div className="h-14 w-14 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 mb-4 group-hover:scale-110 group-hover:bg-teal-50 dark:group-hover:bg-teal-900/20 group-hover:text-teal-600 transition-all duration-300">
+                                            <Plus size={28} />
                                         </div>
                                         {onamFile ? (
                                             <div className="space-y-1">
-                                                <p className="text-sm font-bold text-teal-600 truncate max-w-[200px]">{onamFile.name}</p>
+                                                <p className="text-sm font-bold text-teal-600 dark:text-teal-400 truncate max-w-[200px]">{onamFile.name}</p>
                                                 <p className="text-xs text-gray-400">{(onamFile.size / 1024 / 1024).toFixed(2)} MB</p>
                                             </div>
                                         ) : (
                                             <div className="space-y-1">
-                                                <p className="text-sm font-bold text-gray-600 dark:text-gray-300">Dosya Seçin veya Sürükleyin</p>
-                                                <p className="text-[10px] text-gray-400">PDF, Word veya Görsel (Max 10MB)</p>
+                                                <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Tıklayın veya sürükleyin</p>
+                                                <p className="text-[10px] text-gray-400 font-medium">PDF, DOC, JPG (Maks. 10MB)</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Ek Bilgiler Area */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">EK BİLGİLER</Label>
+                                    </div>
+                                    <div className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-all group cursor-pointer relative overflow-hidden">
+                                        <input
+                                            type="file"
+                                            className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                            onChange={(e) => handleFileChange(e, 'ekbilgiler')}
+                                            accept=".pdf,.doc,.docx,.jpg,.png"
+                                        />
+                                        <div className="h-14 w-14 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 mb-4 group-hover:scale-110 group-hover:bg-teal-50 dark:group-hover:bg-teal-900/20 group-hover:text-teal-600 transition-all duration-300">
+                                            <Plus size={28} />
+                                        </div>
+                                        {ekBilgilerFile ? (
+                                            <div className="space-y-1">
+                                                <p className="text-sm font-bold text-teal-600 dark:text-teal-400 truncate max-w-[200px]">{ekBilgilerFile.name}</p>
+                                                <p className="text-xs text-gray-400">{(ekBilgilerFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-1">
+                                                <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Tıklayın veya sürükleyin</p>
+                                                <p className="text-[10px] text-gray-400 font-medium">PDF, DOC, JPG (Maks. 10MB)</p>
                                             </div>
                                         )}
                                     </div>

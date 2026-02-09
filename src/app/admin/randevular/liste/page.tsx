@@ -52,7 +52,12 @@ import {
 // Initial Mock Data
 const initialAppointments: any[] = [];
 
+import { useSearchParams } from 'next/navigation';
+
+// ... (imports remain the same)
+
 export default function AppointmentListPage() {
+    const searchParams = useSearchParams();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
     const [appointments, setAppointments] = useState(initialAppointments);
@@ -62,6 +67,21 @@ export default function AppointmentListPage() {
     const [endDate, setEndDate] = useState('');
     const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
     const [calendarViewDate, setCalendarViewDate] = useState(new Date());
+    const [highlightId, setHighlightId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const id = searchParams.get('highlight');
+        if (id) {
+            setHighlightId(id);
+            // Scroll into view logic could be added here if refs were managed per row
+
+            // Remove highlight after 2 seconds
+            const timer = setTimeout(() => {
+                setHighlightId(null);
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [searchParams]);
 
     // Modal States
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -353,11 +373,12 @@ export default function AppointmentListPage() {
     // Filtreleme ve Sıralama Mantığı
     const sortedAndFilteredAppointments = React.useMemo(() => {
         let result = appointments.filter(app => {
+            const term = searchTerm.toLocaleLowerCase('tr');
             const matchesSearch =
-                app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                app.doctor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                app.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                app.process.toLowerCase().includes(searchTerm.toLowerCase());
+                app.name.toLocaleLowerCase('tr').includes(term) ||
+                app.doctor.toLocaleLowerCase('tr').includes(term) ||
+                app.department.toLocaleLowerCase('tr').includes(term) ||
+                app.process.toLocaleLowerCase('tr').includes(term);
 
             if (!matchesSearch) return false;
 
@@ -766,7 +787,7 @@ export default function AppointmentListPage() {
                         <tbody className="divide-y divide-gray-50 dark:divide-slate-800/50">
                             {currentAppointments.length > 0 ? (
                                 currentAppointments.map((app) => (
-                                    <tr key={app.id} className="hover:bg-teal-500/2 dark:hover:bg-teal-500/4 transition-colors group">
+                                    <tr key={app.id} id={`row-${app.id}`} className={`hover:bg-teal-500/2 dark:hover:bg-teal-500/4 transition-all duration-500 group ${highlightId === app.id ? 'bg-yellow-100 dark:bg-yellow-900/20' : ''}`}>
                                         <td className="p-4">
                                             <Checkbox
                                                 checked={selectedRows.includes(app.id)}

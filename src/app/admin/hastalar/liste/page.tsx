@@ -66,7 +66,7 @@ export default function PatientListPage() {
     const fetchPatients = async () => {
         setIsRefreshing(true);
         try {
-            const data = await getPatients(searchTerm);
+            const data = await getPatients();
             setPatients(data);
         } catch (error) {
             console.error('Veriler yüklenirken hata oluştu:', error);
@@ -79,13 +79,8 @@ export default function PatientListPage() {
         fetchPatients();
     }, []);
 
-    // Also refetch when searchTerm changes (debounced ideal, but simple here)
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            fetchPatients();
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [searchTerm]);
+    // Removed server-side search effect
+    // useEffect(() => { ... }, [searchTerm]);
 
     // Format Date
     const formatDateTR = (dateStr?: string) => {
@@ -105,6 +100,13 @@ export default function PatientListPage() {
     // Filter and Sort Logic
     const sortedAndFilteredPatients = React.useMemo(() => {
         let result = patients.filter(patient => {
+            const term = searchTerm.toLocaleLowerCase('tr');
+            const matchesSearch =
+                (patient.full_name && patient.full_name.toLocaleLowerCase('tr').includes(term)) ||
+                (patient.identity_no && patient.identity_no.includes(term));
+
+            if (!matchesSearch) return false;
+
             if (startDate || endDate) {
                 if (!patient.created_at) return false;
                 const patientDate = new Date(patient.created_at);
@@ -128,7 +130,7 @@ export default function PatientListPage() {
             const dateB = new Date(b.created_at || 0).getTime();
             return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
         });
-    }, [patients, startDate, endDate, sortOrder]);
+    }, [patients, searchTerm, startDate, endDate, sortOrder]);
 
     // Pagination
     const indexOfLastItem = currentPage * itemsPerPage;
