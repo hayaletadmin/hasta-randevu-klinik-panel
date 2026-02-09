@@ -1,5 +1,8 @@
 "use client"
 
+// Force dynamic rendering to prevent build-time errors
+export const dynamic = 'force-dynamic';
+
 import React from 'react';
 import {
     Users,

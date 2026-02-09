@@ -35,6 +35,10 @@ import {
 } from '@/lib/supabase';
 import type { Department, Doctor, Patient, WorkHour, Closure } from '@/lib/supabase';
 
+// Force dynamic rendering to prevent build-time errors
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+
 export default function CreateAppointmentPage() {
     const router = useRouter();
     const searchParams = useSearchParams();

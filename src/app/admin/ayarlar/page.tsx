@@ -40,6 +40,10 @@ import {
 import { cn } from '@/lib/utils';
 import { Clock, Users, Calendar, Copy, CalendarX, AlertTriangle } from 'lucide-react';
 
+// Force dynamic rendering to prevent build-time errors
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+
 const defaultWorkHours: WorkHour[] = [
     { day: 1, start: '09:00', end: '18:00', isOpen: true, hasLunchBreak: true, lunchStart: '12:00', lunchEnd: '13:30' },
     { day: 2, start: '09:00', end: '18:00', isOpen: true, hasLunchBreak: true, lunchStart: '12:00', lunchEnd: '13:30' },
