@@ -1,5 +1,19 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Variables
+
+This project requires Supabase configuration. Create a `.env.local` file in the root directory:
+
+```bash
+cp .env.example .env.local
+```
+
+Then fill in your Supabase credentials:
+- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous/public key
+
+You can find these values in your Supabase Dashboard → Settings → API.
+
 ## Getting Started
 
 First, run the development server:
@@ -33,4 +47,17 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Important: Configure Environment Variables on Vercel
+
+Before deploying, make sure to add your environment variables in Vercel:
+
+1. Go to your project on Vercel
+2. Navigate to **Settings** → **Environment Variables**
+3. Add the following variables:
+   - `NEXT_PUBLIC_SUPABASE_URL` (your Supabase project URL)
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` (your Supabase anon/public key)
+4. Select **Production**, **Preview**, and **Development** for each variable
+5. Click **Save**
+6. **Redeploy** your project for the changes to take effect
+
+Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
