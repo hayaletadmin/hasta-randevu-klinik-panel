@@ -3,8 +3,7 @@
 // Force dynamic rendering to prevent build-time errors
 export const dynamic = 'force-dynamic';
 
-import React, { useState, useEffect } from 'react';
-import * as XLSX from 'xlsx';
+import React, { useState, useEffect, Suspense } from 'react';
 import {
     Search,
     Plus,
@@ -24,7 +23,8 @@ import {
     AlertCircle,
     FileText,
     ArrowDownWideNarrow,
-    ArrowUpWideNarrow
+    ArrowUpWideNarrow,
+    Loader2
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -54,9 +54,7 @@ const initialAppointments: any[] = [];
 
 import { useSearchParams } from 'next/navigation';
 
-// ... (imports remain the same)
-
-export default function AppointmentListPage() {
+function AppointmentListPageContent() {
     const searchParams = useSearchParams();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
@@ -465,7 +463,9 @@ export default function AppointmentListPage() {
         }
     };
 
-    const handleExport = () => {
+    const handleExport = async () => {
+        const XLSX = await import('xlsx');
+
         const dataToExport = selectedRows.length > 0
             ? appointments.filter(app => selectedRows.includes(app.id))
             : sortedAndFilteredAppointments;
@@ -1240,5 +1240,19 @@ export default function AppointmentListPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function AppointmentListPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="flex items-center justify-center min-h-screen">
+                    <Loader2 className="animate-spin text-teal-600" size={32} />
+                </div>
+            }
+        >
+            <AppointmentListPageContent />
+        </Suspense>
     );
 }
