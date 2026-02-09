@@ -238,8 +238,8 @@ export function StepDateTime({ doctorId, onSelect, onBack, selectedDate, selecte
                                     className={`
                                         flex flex-col items-center justify-center w-[72px] h-24 rounded-2xl border transition-all duration-200
                                         ${localDate === date.full
-                                            ? 'bg-black text-white border-black shadow-lg z-10'
-                                            : 'bg-white text-gray-600 border-gray-200 hover:border-black'}
+                                            ? 'bg-teal-600 text-white border-teal-600 shadow-lg shadow-teal-600/20 z-10'
+                                            : 'bg-white text-gray-600 border-gray-200 hover:border-teal-600'}
                                     `}
                                 >
                                     <span className={`text-[10px] font-bold mb-1 ${localDate === date.full ? 'text-white/70' : 'opacity-60'}`}>{date.name}</span>
@@ -261,7 +261,7 @@ export function StepDateTime({ doctorId, onSelect, onBack, selectedDate, selecte
                         />
                         <button
                             onClick={handleCalendarClick}
-                            className="flex flex-col items-center justify-center w-24 h-24 rounded-2xl border border-gray-200 bg-white text-black hover:border-black transition-all duration-200"
+                            className="flex flex-col items-center justify-center w-24 h-24 rounded-2xl border border-gray-200 bg-white text-teal-600 hover:border-teal-600 transition-all duration-200"
                         >
                             <CalendarIcon className="w-8 h-8 mb-1" />
                             <span className="text-[10px] font-black uppercase">Takvim</span>
@@ -276,7 +276,7 @@ export function StepDateTime({ doctorId, onSelect, onBack, selectedDate, selecte
                             min={minDate}
                             value={localDate}
                             onChange={(e) => handleDateChange(e.target.value)}
-                            className="w-full h-14 px-5 rounded-2xl border-2 border-gray-100 bg-white text-gray-900 font-bold focus:outline-none focus:border-black transition-all appearance-none text-base"
+                            className="w-full h-14 px-5 rounded-2xl border-2 border-gray-100 bg-white text-gray-900 font-bold focus:outline-none focus:border-teal-600 transition-all appearance-none text-base"
                         />
                         <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                             <CalendarIcon className="w-5 h-5" />
@@ -310,8 +310,8 @@ export function StepDateTime({ doctorId, onSelect, onBack, selectedDate, selecte
                                     ${slot.isDisabled
                                         ? `bg-gray-50 border-gray-100 cursor-not-allowed line-through ${slot.reason === 'Dolu' ? 'text-red-400' : 'text-gray-300'}`
                                         : localTime === slot.time
-                                            ? 'bg-black text-white border-black shadow-md scale-105 z-10'
-                                            : 'bg-white text-gray-700 border-gray-200 hover:border-black hover:shadow-sm'}
+                                            ? 'bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-600/20 scale-105 z-10'
+                                            : 'bg-white text-gray-700 border-gray-200 hover:border-teal-600 hover:shadow-sm'}
                                 `}
                             >
                                 {slot.time}
@@ -322,13 +322,13 @@ export function StepDateTime({ doctorId, onSelect, onBack, selectedDate, selecte
             </div>
 
             <div className="flex justify-between pt-8">
-                <Button variant="outline" onClick={onBack} className="h-11 px-8 border-black text-black hover:bg-gray-50 transition-all font-bold">
+                <Button variant="outline" onClick={onBack} className="h-11 px-8 border-teal-600 text-teal-600 hover:bg-teal-50 transition-all font-bold">
                     ← Geri
                 </Button>
                 <Button
                     onClick={handleConfirm}
                     disabled={!localDate || !localTime || loading}
-                    className="bg-black hover:bg-gray-800 text-white font-bold h-11 px-10 rounded-xl transition-all shadow-sm"
+                    className="bg-teal-600 hover:bg-teal-700 text-white font-bold h-11 px-10 rounded-xl transition-all shadow-lg shadow-teal-600/20"
                 >
                     Devam Et →
                 </Button>

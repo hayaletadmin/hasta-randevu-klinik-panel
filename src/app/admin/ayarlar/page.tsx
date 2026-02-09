@@ -15,7 +15,14 @@ import {
     Phone,
     Image as ImageIcon,
     Upload,
-    Globe
+    Globe,
+    MapPin,
+    Clock,
+    Users,
+    Calendar,
+    Copy,
+    CalendarX,
+    AlertTriangle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,7 +50,6 @@ import {
     uploadClinicLogo
 } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
-import { Clock, Users, Calendar, Copy, CalendarX, AlertTriangle } from 'lucide-react';
 
 // Force dynamic rendering to prevent build-time errors
 export const dynamic = 'force-dynamic';
@@ -110,7 +116,9 @@ export default function SettingsPage() {
         name: '',
         logo: '',
         phone1: '',
-        website: ''
+        website: '',
+        description: '',
+        address: ''
     });
     const [logoFile, setLogoFile] = useState<File | null>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -177,6 +185,8 @@ export default function SettingsPage() {
                 if (s.key === 'clinic_logo') { setClinicInfo(prev => ({ ...prev, logo: s.value })); setLogoPreview(s.value); }
                 if (s.key === 'clinic_phone1') setClinicInfo(prev => ({ ...prev, phone1: s.value }));
                 if (s.key === 'clinic_website') setClinicInfo(prev => ({ ...prev, website: s.value }));
+                if (s.key === 'clinic_description') setClinicInfo(prev => ({ ...prev, description: s.value }));
+                if (s.key === 'clinic_address') setClinicInfo(prev => ({ ...prev, address: s.value }));
             });
             setAppointmentSettings(settingsMap);
             // Mevcut değeri veritabanından gelen değer olarak sakla
@@ -358,7 +368,9 @@ export default function SettingsPage() {
                 updateClinicSetting('clinic_name', clinicInfo.name),
                 updateClinicSetting('clinic_logo', logoUrl),
                 updateClinicSetting('clinic_phone1', clinicInfo.phone1),
-                updateClinicSetting('clinic_website', clinicInfo.website)
+                updateClinicSetting('clinic_website', clinicInfo.website),
+                updateClinicSetting('clinic_description', clinicInfo.description),
+                updateClinicSetting('clinic_address', clinicInfo.address)
             ]);
 
             setClinicInfo(prev => ({ ...prev, logo: logoUrl }));
@@ -584,126 +596,159 @@ export default function SettingsPage() {
                         <Calendar size={18} />
                         Çalışma Saatleri
                     </button>
-                    {/* Placeholder for future settings */}
-                    <div className="pt-4 px-5">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Gelecek Ayarlar</span>
-                    </div>
-                    <button
-                        disabled
-                        className="w-full h-11 flex items-center gap-3 px-5 py-3.5 text-sm font-medium rounded-lg opacity-50 cursor-not-allowed text-gray-400"
-                    >
-                        <Building2 size={18} />
-                        Klinik Bilgileri (Yakında)
-                    </button>
-                    <button
-                        disabled
-                        className="w-full h-11 flex items-center gap-3 px-5 py-3.5 text-sm font-medium rounded-lg opacity-50 cursor-not-allowed text-gray-400"
-                    >
-                        Genel Ayarlar (Yakında)
-                    </button>
+
 
                 </div>
 
                 {/* Content Area */}
                 <div className="flex-1">
                     {activeTab === 'clinic' && (
-                        <Card className="border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden rounded-xl">
-                            <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 dark:border-gray-800/50 pb-6 px-6 pt-6">
-                                <div>
-                                    <CardTitle className="text-xl font-bold flex items-center gap-2">
-                                        Klinik Bilgileri
-                                    </CardTitle>
-                                    <CardDescription className="mt-1">
-                                        Klinik adı, logosu ve iletişim bilgilerini yönetin.
-                                    </CardDescription>
-                                </div>
-                                <Button
-                                    onClick={handleSaveClinicInfo}
-                                    disabled={savingClinicInfo}
-                                    className="bg-teal-600 hover:bg-teal-700 text-white h-10 px-5 rounded-lg font-semibold shadow-sm gap-2"
-                                >
-                                    {savingClinicInfo ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                                    Kaydet
-                                </Button>
-                            </CardHeader>
-                            <CardContent className="p-6 space-y-8">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    {/* Logo Section */}
-                                    <div className="space-y-4">
-                                        <Label className="text-sm font-bold text-gray-700 dark:text-gray-300">Klinik Logosu</Label>
-                                        <div className="flex flex-col items-center gap-4 p-6 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl bg-gray-50/50 dark:bg-slate-900/50">
-                                            {logoPreview ? (
-                                                <div className="relative group">
-                                                    <img src={logoPreview} alt="Logo" className="max-h-32 rounded-lg shadow-sm" />
-                                                    <button
-                                                        onClick={() => { setLogoPreview(null); setLogoFile(null); setClinicInfo(prev => ({ ...prev, logo: '' })); }}
-                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    >
-                                                        <X size={14} />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col items-center text-gray-400">
-                                                    <ImageIcon size={48} className="mb-2 opacity-20" />
-                                                    <span className="text-xs">Henüz logo yüklenmedi</span>
-                                                </div>
-                                            )}
-                                            <div className="w-full">
-                                                <label className="flex items-center justify-center gap-2 w-full h-10 px-4 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer transition-colors shadow-sm">
-                                                    <Upload size={16} />
-                                                    {logoPreview ? 'Logoyu Değiştir' : 'Logo Yükle'}
-                                                    <input type="file" className="hidden" accept="image/png,image/jpeg,image/jpg" onChange={handleLogoChange} />
-                                                </label>
-                                                <p className="text-[10px] text-center text-gray-400 mt-2">Max 10MB, PNG veya JPG</p>
-                                            </div>
+                        <div className="space-y-6">
+                            <Card className="border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden rounded-xl bg-white dark:bg-slate-900">
+                                <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 dark:border-gray-800/50 pb-6 px-6 pt-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 rounded-xl shadow-sm">
+                                            <Building2 size={24} />
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-xl font-bold tracking-tight">Klinik Bilgileri</CardTitle>
+                                            <CardDescription className="mt-1 font-medium text-gray-400">Genel klinik ayarları ve dijital kimlik bilgilerini buradan güncelleyebilirsiniz.</CardDescription>
                                         </div>
                                     </div>
-
-                                    {/* Info Section */}
-                                    <div className="space-y-6">
-                                        <div className="space-y-2">
-                                            <Label className="text-sm font-bold text-gray-700 dark:text-gray-300">Klinik Adı</Label>
-                                            <Input
-                                                placeholder="Klinik adını giriniz"
-                                                value={clinicInfo.name}
-                                                maxLength={100}
-                                                onChange={(e) => setClinicInfo(prev => ({ ...prev, name: e.target.value }))}
-                                                className="h-11 bg-white dark:bg-slate-900 border-gray-200 dark:border-gray-800 focus-visible:ring-teal-500 transition-all font-medium"
-                                            />
-                                        </div>
-
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label className="text-sm font-bold text-gray-700 dark:text-gray-300">İletişim No (Max 11 Hane)</Label>
-                                                <div className="relative">
-                                                    <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                                                    <Input
-                                                        placeholder="05XXXXXXXXX"
-                                                        value={clinicInfo.phone1}
-                                                        maxLength={11}
-                                                        onChange={(e) => setClinicInfo(prev => ({ ...prev, phone1: e.target.value.replace(/\D/g, '') }))}
-                                                        className="h-11 pl-10 bg-white dark:bg-slate-900 border-gray-200 dark:border-gray-800 focus-visible:ring-teal-500 transition-all font-medium"
-                                                    />
+                                    <Button
+                                        onClick={handleSaveClinicInfo}
+                                        disabled={savingClinicInfo}
+                                        className="bg-teal-600 hover:bg-teal-700 text-white h-11 px-6 rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-teal-500/20 gap-2"
+                                    >
+                                        {savingClinicInfo ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                                        Değişiklikleri Kaydet
+                                    </Button>
+                                </CardHeader>
+                                <CardContent className="p-8">
+                                    <div className="flex flex-col xl:flex-row gap-10">
+                                        {/* Right Side: Form Fields */}
+                                        <div className="flex-1 space-y-8">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                {/* Clinic Name */}
+                                                <div className="space-y-2.5">
+                                                    <Label className="text-[11px] font-black text-gray-400 tracking-widest px-1">Klinik Adı</Label>
+                                                    <div className="relative">
+                                                        <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600" />
+                                                        <Input
+                                                            placeholder="HealthBridge Clinic..."
+                                                            value={clinicInfo.name}
+                                                            maxLength={100}
+                                                            onChange={(e) => setClinicInfo(prev => ({ ...prev, name: e.target.value }))}
+                                                            className="h-12 pl-11 bg-white dark:bg-slate-950 border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-teal-500/20 font-bold text-gray-800 dark:text-white transition-all shadow-sm"
+                                                        />
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-sm font-bold text-gray-700 dark:text-gray-300">Web Sitesi</Label>
-                                                <div className="relative">
-                                                    <Globe size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                                                    <Input
-                                                        placeholder="www.klinikadi.com"
-                                                        value={clinicInfo.website}
+
+                                                {/* Phone */}
+                                                <div className="space-y-2.5">
+                                                    <Label className="text-[11px] font-black text-gray-400 tracking-widest px-1">Telefon Numarası</Label>
+                                                    <div className="relative">
+                                                        <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600" />
+                                                        <Input
+                                                            placeholder="05XXXXXXXXX"
+                                                            value={clinicInfo.phone1}
+                                                            maxLength={11}
+                                                            onChange={(e) => setClinicInfo(prev => ({ ...prev, phone1: e.target.value.replace(/\D/g, '') }))}
+                                                            className="h-12 pl-11 bg-white dark:bg-slate-950 border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-teal-500/20 font-bold text-gray-800 dark:text-white transition-all shadow-sm"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Clinic Address */}
+                                                <div className="space-y-2.5">
+                                                    <Label className="text-[11px] font-black text-gray-400 tracking-widest px-1">Klinik Adresi</Label>
+                                                    <div className="relative">
+                                                        <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600" />
+                                                        <Input
+                                                            placeholder="Klinik tam adresi..."
+                                                            value={clinicInfo.address}
+                                                            maxLength={200}
+                                                            onChange={(e) => setClinicInfo(prev => ({ ...prev, address: e.target.value }))}
+                                                            className="h-12 pl-11 bg-white dark:bg-slate-950 border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-teal-500/20 font-bold text-gray-800 dark:text-white transition-all shadow-sm"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Website */}
+                                                <div className="space-y-2.5">
+                                                    <Label className="text-[11px] font-black text-gray-400 tracking-widest px-1">Web Sitesi</Label>
+                                                    <div className="relative">
+                                                        <Globe size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600" />
+                                                        <Input
+                                                            placeholder="www.yourclinic.com"
+                                                            value={clinicInfo.website}
+                                                            maxLength={500}
+                                                            onChange={(e) => setClinicInfo(prev => ({ ...prev, website: e.target.value }))}
+                                                            className="h-12 pl-11 bg-white dark:bg-slate-950 border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-teal-500/20 font-bold text-gray-800 dark:text-white transition-all shadow-sm"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Description */}
+                                                <div className="md:col-span-2 space-y-2.5">
+                                                    <Label className="text-[11px] font-black text-gray-400 tracking-widest px-1">Klinik Açıklaması</Label>
+                                                    <textarea
+                                                        placeholder="Klinik hakkında kısa bir açıklama yazın..."
+                                                        value={clinicInfo.description}
                                                         maxLength={500}
-                                                        onChange={(e) => setClinicInfo(prev => ({ ...prev, website: e.target.value }))}
-                                                        className="h-11 pl-10 bg-white dark:bg-slate-900 border-gray-200 dark:border-gray-800 focus-visible:ring-teal-500 transition-all font-medium"
+                                                        rows={4}
+                                                        onChange={(e) => setClinicInfo(prev => ({ ...prev, description: e.target.value }))}
+                                                        className="w-full p-4 bg-white dark:bg-slate-950 border-gray-200 dark:border-gray-800 rounded-2xl focus:ring-4 focus:ring-teal-500/10 font-medium text-gray-800 dark:text-white transition-all shadow-sm resize-none outline-none text-sm leading-relaxed"
                                                     />
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {/* Left Side: Logo & Visual */}
+                                        <div className="w-full xl:w-64 shrink-0">
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between px-1">
+                                                    <Label className="text-[11px] font-black text-gray-400 tracking-widest">Klinik Logosu</Label>
+                                                    {logoPreview && (
+                                                        <span className="text-[10px] font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-500/10 px-2 py-0.5 rounded-full uppercase tracking-tighter">Aktif</span>
+                                                    )}
+                                                </div>
+                                                <div className="relative group aspect-square rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-slate-950/50 flex flex-col items-center justify-center overflow-hidden transition-all hover:border-teal-500/50 hover:bg-white dark:hover:bg-slate-950 shadow-inner">
+                                                    {logoPreview ? (
+                                                        <>
+                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px] z-10">
+                                                                <button
+                                                                    onClick={() => { setLogoPreview(null); setLogoFile(null); setClinicInfo(prev => ({ ...prev, logo: '' })); }}
+                                                                    className="p-3 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-xl transition-all hover:scale-110 active:scale-90"
+                                                                >
+                                                                    <Trash2 size={20} />
+                                                                </button>
+                                                            </div>
+                                                            <img src={logoPreview} alt="Clinic Logo" className="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-500" />
+                                                        </>
+                                                    ) : (
+                                                        <div className="flex flex-col items-center text-gray-300 dark:text-gray-700">
+                                                            <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl shadow-sm mb-4">
+                                                                <ImageIcon size={32} className="text-gray-200 dark:text-gray-800" />
+                                                            </div>
+                                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Logo Yok</p>
+                                                        </div>
+                                                    )}
+
+                                                    <label className="absolute bottom-3 left-3 right-3 z-20">
+                                                        <div className="w-full h-10 bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-800 shadow-xl rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-all font-bold text-[11px] text-gray-600 dark:text-gray-300 uppercase tracking-tight">
+                                                            <Upload size={14} />
+                                                            {logoPreview ? 'Güncelle' : 'Yükle'}
+                                                        </div>
+                                                        <input type="file" className="hidden" accept="image/png,image/jpeg,image/jpg" onChange={handleLogoChange} />
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                </CardContent>
+                            </Card>
+                        </div>
                     )}
 
                     {activeTab === 'staff' && (

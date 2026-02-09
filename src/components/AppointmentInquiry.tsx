@@ -45,7 +45,7 @@ export function AppointmentInquiry() {
     return (
         <div className="space-y-6 max-w-2xl mx-auto w-full">
             <Card className="border-gray-200 shadow-sm">
-                <CardContent className="p-6 sm:p-8 space-y-6">
+                <CardContent className="p-5 sm:p-6 space-y-4">
                     <h2 className="text-xl font-bold text-gray-900 tracking-tight">Randevu Sorgula</h2>
 
                     <div className="space-y-2">
@@ -54,7 +54,7 @@ export function AppointmentInquiry() {
                             placeholder="11 haneli TC Kimlik No"
                             value={tc}
                             onChange={handleTcChange}
-                            className="h-11 bg-white border-gray-300 focus-visible:ring-black"
+                            className="h-11 bg-white border-gray-300 focus-visible:ring-teal-600"
                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         />
                     </div>
@@ -62,7 +62,7 @@ export function AppointmentInquiry() {
                     <Button
                         onClick={handleSearch}
                         disabled={loading}
-                        className="w-full bg-black hover:bg-gray-800 text-white font-bold h-11 transition-all uppercase text-xs tracking-widest"
+                        className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold h-11 transition-all uppercase text-xs tracking-widest shadow-lg shadow-teal-600/20"
                     >
                         {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sorgula"}
                     </Button>
@@ -74,11 +74,11 @@ export function AppointmentInquiry() {
                     {appointments.length > 0 ? (
                         <>
                             <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 px-2">
-                                <Calendar className="w-4 h-4 text-black" />
+                                <Calendar className="w-4 h-4 text-teal-600" />
                                 Randevularınız
                             </h3>
                             {appointments.map((app) => (
-                                <Card key={app.id} className="border-l-4 border-l-black hover:shadow-md transition-shadow">
+                                <Card key={app.id} className="border-l-4 border-l-teal-600 hover:shadow-md transition-shadow">
                                     <CardContent className="p-5">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="space-y-3 text-left">
@@ -107,7 +107,7 @@ export function AppointmentInquiry() {
                                         <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
                                             <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${app.status === 'Tamamlandı' ? 'bg-gray-100 text-gray-900' :
                                                 app.status === 'İptal' ? 'bg-gray-50 text-gray-400 line-through' :
-                                                    'bg-black text-white'
+                                                    'bg-teal-600 text-white'
                                                 }`}>
                                                 {app.status}
                                             </span>

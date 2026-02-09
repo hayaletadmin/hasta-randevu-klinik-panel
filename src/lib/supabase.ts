@@ -119,6 +119,16 @@ export type Appointment = {
     procedures?: Procedure;
 };
 
+export type AppNotification = {
+    id: string;
+    created_at: string;
+    message: string;
+    link?: string;
+    is_read: boolean;
+    related_id?: string;
+    type?: string;
+};
+
 // Data Fetching Functions
 
 export const getDepartments = async (): Promise<Department[]> => {
@@ -265,6 +275,29 @@ export const createAppointment = async (appointmentData: Omit<Appointment, 'id'>
     if (error) {
         throw error;
     }
+
+    // Automatically create notification
+    try {
+        // Fetch patient details for name
+        const { data: patient } = await supabase
+            .from('patients')
+            .select('full_name')
+            .eq('id', appointmentData.patient_id)
+            .single();
+
+        if (patient) {
+            const message = `${patient.full_name}, ${appointmentData.appointment_date} tarihinde randevu oluşturdu`;
+            await createNotification({
+                message,
+                link: '/admin/randevular',
+                related_id: data.id,
+                type: 'appointment'
+            });
+        }
+    } catch (notifyError) {
+        console.error('Notification creation failed:', notifyError);
+    }
+
     return data;
 
 };
@@ -691,5 +724,69 @@ export const getDocumentUrl = (filePath: string) => {
         .from('patient-documents')
         .getPublicUrl(filePath);
     return data.publicUrl;
+};
+
+// Notification System
+export const getNotifications = async (): Promise<AppNotification[]> => {
+    const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20); // Last 20 notifications
+
+    if (error) {
+        console.error('Error fetching notifications:', error);
+        return [];
+    }
+    return data || [];
+};
+
+export const getUnreadNotificationCount = async (): Promise<number> => {
+    const { count, error } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_read', false);
+
+    if (error) {
+        console.error('Error fetching notification count:', error);
+        return 0;
+    }
+    return count || 0;
+};
+
+export const createNotification = async (notification: Omit<AppNotification, 'id' | 'created_at' | 'is_read'>) => {
+    const { data, error } = await supabase
+        .from('notifications')
+        .insert([notification])
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error creating notification:', error);
+        // Do not throw error here to avoid breaking main flow if notification fails (unless critical table missing)
+    }
+    return data;
+};
+
+export const markNotificationAsRead = async (id: string) => {
+    const { data, error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', id)
+        .select();
+
+    if (error) throw error;
+    return data;
+};
+
+export const markAllNotificationsAsRead = async () => {
+    const { data, error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('is_read', false)
+        .select();
+
+    if (error) throw error;
+    return data;
 };
 

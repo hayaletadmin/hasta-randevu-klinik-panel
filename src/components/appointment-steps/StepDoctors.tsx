@@ -33,7 +33,7 @@ export function StepDoctors({ onSelect, onNext, onBack, selectedDoctorId, depart
     return (
         <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Doktor Seçiniz</h2>
-            <p className="text-gray-500 -mt-4 text-xs font-bold tracking-widest">Bölüm: <span className="text-black">{departmentName}</span></p>
+            <p className="text-gray-500 -mt-4 text-xs font-bold tracking-widest">Bölüm: <span className="text-teal-600">{departmentName}</span></p>
 
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 text-gray-400">
@@ -52,8 +52,8 @@ export function StepDoctors({ onSelect, onNext, onBack, selectedDoctorId, depart
                             className={`
                                 p-6 cursor-pointer transition-all duration-200 flex items-center justify-center text-center
                                 ${selectedDoctorId === doc.id
-                                    ? 'bg-black text-white border-black shadow-md transform scale-[1.01]'
-                                    : 'bg-white text-gray-800 border-gray-200 hover:border-black hover:bg-gray-50'}
+                                    ? 'bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-600/20 transform scale-[1.01]'
+                                    : 'bg-white text-gray-800 border-gray-200 hover:border-teal-600 hover:bg-gray-50'}
                             `}
                             onClick={() => onSelect(doc.id, `${doc.title} ${doc.full_name}`)}
                         >
@@ -64,13 +64,13 @@ export function StepDoctors({ onSelect, onNext, onBack, selectedDoctorId, depart
             )}
 
             <div className="flex justify-between pt-8">
-                <Button variant="outline" onClick={onBack} className="h-11 px-8 border-black text-black hover:bg-gray-50 transition-all">
+                <Button variant="outline" onClick={onBack} className="h-11 px-8 border-teal-600 text-teal-600 hover:bg-teal-50 transition-all">
                     ← Geri
                 </Button>
                 <Button
                     onClick={onNext}
                     disabled={!selectedDoctorId}
-                    className="bg-black hover:bg-gray-800 text-white font-bold h-11 px-8 rounded-lg transition-all"
+                    className="bg-teal-600 hover:bg-teal-700 text-white font-bold h-11 px-8 rounded-lg transition-all shadow-lg shadow-teal-600/20"
                 >
                     Devam Et →
                 </Button>

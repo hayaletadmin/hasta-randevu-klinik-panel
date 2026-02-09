@@ -170,7 +170,15 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                 });
 
                 setDoctors(doctorsData);
-                setAppointments(appointmentsData);
+                const mappedApps = appointmentsData.map((app: any) => ({
+                    ...app,
+                    recorded_by: app.recorded_by // Ensure it's included
+                })).sort((a: any, b: any) => {
+                    const dateA = new Date(a.created_at || 0).getTime();
+                    const dateB = new Date(b.created_at || 0).getTime();
+                    return dateB - dateA;
+                });
+                setAppointments(mappedApps);
                 setDepartments(departmentsData);
                 setGroups(groupsData);
                 setPatientDocs(documentsData);
@@ -256,7 +264,15 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
         setIsRefreshing(true);
         try {
             const data = await getAppointmentsByPatientId(id);
-            setAppointments(data);
+            const mappedApps = data.map((app: any) => ({
+                ...app,
+                recorded_by: app.recorded_by
+            })).sort((a: any, b: any) => {
+                const dateA = new Date(a.created_at || 0).getTime();
+                const dateB = new Date(b.created_at || 0).getTime();
+                return dateB - dateA;
+            });
+            setAppointments(mappedApps);
         } catch (error) {
             console.error('Randevular yenilenirken hata:', error);
         } finally {
@@ -889,6 +905,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                         <th className="py-3 px-4">Bölüm</th>
                                         <th className="py-3 px-4">Doktor</th>
                                         <th className="py-3 px-4">Randevu Tarih/Saat</th>
+                                        <th className="py-3 px-4 text-center w-[120px]">Oluşturan</th>
                                         <th className="py-3 px-4 text-center w-[120px]">Durum</th>
                                         <th className="py-3 px-4 text-right w-[100px]">İşlem</th>
                                     </tr>
@@ -915,6 +932,17 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                                         <span className="text-gray-300 mx-1">|</span>
                                                         <Clock size={14} className="text-teal-500" />
                                                         {app.appointment_time?.slice(0, 5)}
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 text-center">
+                                                    <div className={`
+                                                        inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-[10px] font-bold uppercase tracking-tight
+                                                        ${(app.recorded_by === 'Kullanıcı')
+                                                            ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/20'
+                                                            : 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-500/20'
+                                                        }
+                                                    `}>
+                                                        {app.recorded_by || 'Sistem'}
                                                     </div>
                                                 </td>
                                                 <td className="p-4 text-center">

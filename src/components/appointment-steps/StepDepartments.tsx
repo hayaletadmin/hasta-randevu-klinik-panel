@@ -43,8 +43,8 @@ export function StepDepartments({ onSelect, onNext, onBack, selectedDepartmentId
                             className={`
                                 h-32 flex items-center justify-center p-4 cursor-pointer transition-all duration-200 hover:shadow-md
                                 ${selectedDepartmentId === dept.id
-                                    ? 'bg-black text-white border-black shadow-lg scale-[1.02]'
-                                    : 'bg-white text-gray-800 border-gray-200 hover:border-black'}
+                                    ? 'bg-teal-600 text-white border-teal-600 shadow-lg shadow-teal-600/20 scale-[1.02]'
+                                    : 'bg-white text-gray-800 border-gray-200 hover:border-teal-600'}
                             `}
                             onClick={() => onSelect(dept.id, dept.name)}
                         >
@@ -55,13 +55,13 @@ export function StepDepartments({ onSelect, onNext, onBack, selectedDepartmentId
             )}
 
             <div className="flex justify-between pt-4">
-                <Button variant="outline" onClick={onBack} className="h-11 px-8 border-black text-black hover:bg-gray-50 transition-all">
+                <Button variant="outline" onClick={onBack} className="h-11 px-8 border-teal-600 text-teal-600 hover:bg-teal-50 transition-all">
                     ← Geri
                 </Button>
                 <Button
                     disabled={!selectedDepartmentId}
                     onClick={onNext}
-                    className="bg-black hover:bg-gray-800 text-white font-bold h-11 px-8 rounded-lg transition-all"
+                    className="bg-teal-600 hover:bg-teal-700 text-white font-bold h-11 px-8 rounded-lg transition-all shadow-lg shadow-teal-600/20"
                 >
                     Devam Et →
                 </Button>

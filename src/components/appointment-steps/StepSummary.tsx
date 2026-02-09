@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { PatientSchemaType } from "@/lib/validations";
-import { Loader2, User, Calendar, Stethoscope, MapPin, Phone, Hash } from "lucide-react"
+import { Loader2, User, Calendar, Stethoscope, Building2, Phone, Hash } from "lucide-react"
 
 interface AppointmentData {
     patient: PatientSchemaType | null;
@@ -35,11 +35,11 @@ export function StepSummary({ data, onConfirm, onBack, isSubmitting = false }: S
     };
     return (
         <div className="space-y-6">
-            <h2 className="text-2xl font-black text-black tracking-tight">Randevu Özeti</h2>
+            <h2 className="text-2xl font-black text-teal-600 tracking-tight">Randevu Özeti</h2>
 
-            <div className="bg-white rounded-2xl border-2 border-black/5 overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div className="bg-white rounded-2xl border-2 border-teal-50 overflow-hidden shadow-[0_8px_30px_rgb(0,150,137,0.06)]">
                 {/* Header Section */}
-                <div className="bg-black p-6 text-white flex items-center justify-between">
+                <div className="bg-teal-600 p-6 text-white flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
                             <Calendar className="w-5 h-5 text-white" />
@@ -56,11 +56,11 @@ export function StepSummary({ data, onConfirm, onBack, isSubmitting = false }: S
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-4">
                             <div className="flex items-center gap-2">
-                                <User className="w-4 h-4 text-black opacity-40" />
+                                <User className="w-4 h-4 text-teal-600 opacity-40" />
                                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Hasta Bilgileri</span>
                             </div>
                             <div className="space-y-2">
-                                <div className="text-xl font-black text-black leading-tight">
+                                <div className="text-xl font-black text-teal-600 leading-tight">
                                     {data.patient?.firstName} {data.patient?.lastName}
                                 </div>
                                 <div className="flex flex-col gap-1.5 pt-1">
@@ -80,18 +80,18 @@ export function StepSummary({ data, onConfirm, onBack, isSubmitting = false }: S
                         <div className="space-y-6 border-l-0 md:border-l border-gray-100 md:pl-8">
                             <div className="space-y-4">
                                 <div className="flex items-center gap-2">
-                                    <MapPin className="w-4 h-4 text-black opacity-40" />
+                                    <Building2 className="w-4 h-4 text-teal-600 opacity-40" />
                                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Bölüm</span>
                                 </div>
-                                <div className="text-lg font-bold text-black leading-tight underline decoration-gray-200 decoration-2 underline-offset-4">{data.department}</div>
+                                <div className="text-lg font-bold text-teal-600 leading-tight underline decoration-teal-100 decoration-2 underline-offset-4">{data.department}</div>
                             </div>
 
                             <div className="space-y-4 pt-2">
                                 <div className="flex items-center gap-2">
-                                    <Stethoscope className="w-4 h-4 text-black opacity-40" />
+                                    <Stethoscope className="w-4 h-4 text-teal-600 opacity-40" />
                                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Doktor</span>
                                 </div>
-                                <div className="text-lg font-bold text-black leading-tight underline decoration-gray-200 decoration-2 underline-offset-4">{data.doctor}</div>
+                                <div className="text-lg font-bold text-teal-600 leading-tight underline decoration-teal-100 decoration-2 underline-offset-4">{data.doctor}</div>
                             </div>
                         </div>
                     </div>
@@ -102,7 +102,7 @@ export function StepSummary({ data, onConfirm, onBack, isSubmitting = false }: S
                 <Button
                     variant="ghost"
                     onClick={onBack}
-                    className="h-12 px-6 text-gray-400 hover:text-black transition-all font-bold text-sm tracking-tighter"
+                    className="h-12 px-6 text-gray-400 hover:text-teal-600 transition-all font-bold text-sm tracking-tighter"
                     disabled={isSubmitting}
                 >
                     ← Geri Dön
@@ -110,7 +110,7 @@ export function StepSummary({ data, onConfirm, onBack, isSubmitting = false }: S
                 <Button
                     onClick={onConfirm}
                     disabled={isSubmitting}
-                    className="bg-black hover:bg-gray-800 text-white font-black h-12 px-10 rounded-xl min-w-[240px] transition-all text-sm shadow-xl shadow-black/10 active:scale-95"
+                    className="bg-teal-600 hover:bg-teal-700 text-white font-black h-12 px-10 rounded-xl min-w-[240px] transition-all text-sm shadow-xl shadow-teal-600/20 active:scale-95"
                 >
                     {isSubmitting ? (
                         <>

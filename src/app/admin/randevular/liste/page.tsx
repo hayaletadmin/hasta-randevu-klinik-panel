@@ -295,7 +295,8 @@ export default function AppointmentListPage() {
                     status: app.status || 'Bekleniyor',
                     department_id: app.department_id,
                     doctor_id: app.doctor_id,
-                    created_at: app.created_at
+                    created_at: app.created_at,
+                    recorded_by: app.recorded_by
                 };
             });
 
@@ -757,6 +758,7 @@ export default function AppointmentListPage() {
                                 <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-[18%] min-w-[150px]">Doktor</th>
                                 <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-[14%] min-w-[120px]">Tarih</th>
                                 <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-[10%] min-w-[100px]">Saat</th>
+                                <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-[12%] min-w-[120px]">Oluşturan</th>
                                 <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-[14%] min-w-[140px]">Durum</th>
                                 <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center w-[60px]">İşlem</th>
                             </tr>
@@ -797,6 +799,17 @@ export default function AppointmentListPage() {
                                             <div className="flex items-center gap-1.5 text-sm font-bold text-gray-600 dark:text-gray-300">
                                                 <Clock size={12} className="text-teal-500" />
                                                 {app.time}
+                                            </div>
+                                        </td>
+                                        <td className="p-4">
+                                            <div className={`
+                                                inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-tight
+                                                ${(app.recorded_by === 'Kullanıcı')
+                                                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/20'
+                                                    : 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-500/20'
+                                                }
+                                            `}>
+                                                {app.recorded_by || 'Sistem'}
                                             </div>
                                         </td>
                                         <td className="p-4">
