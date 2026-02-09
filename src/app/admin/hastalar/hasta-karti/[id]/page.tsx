@@ -61,6 +61,33 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 
 
+// Helper: Validations
+const validateTCKN = (value: string) => {
+    value = value.toString().replace(/\D/g, '');
+    if (value.length !== 11) return false;
+    if (value[0] === '0') return false;
+    const digits = value.split('').map(Number);
+    const oddSum = digits[0] + digits[2] + digits[4] + digits[6] + digits[8];
+    const evenSum = digits[1] + digits[3] + digits[5] + digits[7];
+    const tenthDigit = (((oddSum * 7) - evenSum) % 10 + 10) % 10;
+    const eleventhDigit = (digits.slice(0, 10).reduce((a, b) => a + b, 0)) % 10;
+    return digits[9] === tenthDigit && digits[10] === eleventhDigit;
+};
+
+const formatPhone = (value: string) => {
+    if (!value) return '+90 ';
+    let raw = value.replace(/\D/g, '');
+    if (raw.startsWith('90')) raw = raw.slice(2);
+    if (raw.startsWith('0')) raw = raw.slice(1);
+    if (raw.length > 10) raw = raw.slice(0, 10);
+
+    if (raw.length === 0) return '+90 ';
+    if (raw.length <= 3) return `+90 ${raw}`;
+    if (raw.length <= 6) return `+90 ${raw.slice(0, 3)} ${raw.slice(3)}`;
+    if (raw.length <= 8) return `+90 ${raw.slice(0, 3)} ${raw.slice(3, 6)} ${raw.slice(6)}`;
+    return `+90 ${raw.slice(0, 3)} ${raw.slice(3, 6)} ${raw.slice(6, 8)} ${raw.slice(8)}`;
+};
+
 export default function EditPatientPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const { id } = use(params);
@@ -71,7 +98,6 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
     const [doctors, setDoctors] = useState<Doctor[]>([]);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [isDirty, setIsDirty] = useState(false);
-    const [showUnsavedModal, setShowUnsavedModal] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [departments, setDepartments] = useState<Department[]>([]);
     const [groups, setGroups] = useState<PatientGroup[]>([]);
@@ -133,7 +159,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                 setFormData({
                     full_name: patientData.full_name || '',
                     identity_no: patientData.identity_no || '',
-                    phone: patientData.phone || '',
+                    phone: formatPhone(patientData.phone || ''),
                     gender: patientData.gender || '',
                     birth_date: patientData.birth_date || '',
                     blood_type: patientData.blood_type || '',
@@ -174,26 +200,13 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [isDirty]);
 
-    // Helper: Validations
-    const validateTCKN = (value: string) => {
-        value = value.toString();
-        if (!/^\d{11}$/.test(value)) return false;
-        if (value[0] === '0') return false;
-        const digits = value.split('').map(Number);
-        const oddSum = digits[0] + digits[2] + digits[4] + digits[6] + digits[8];
-        const evenSum = digits[1] + digits[3] + digits[5] + digits[7];
-        const tenthDigit = ((oddSum * 7) - evenSum) % 10;
-        const eleventhDigit = digits.slice(0, 10).reduce((a, b) => a + b, 0) % 10;
-        return digits[9] === tenthDigit && digits[10] === eleventhDigit;
-    };
-
     const validateForm = () => {
         const newErrors: { [key: string]: string } = {};
         if (!formData.full_name.trim()) newErrors.full_name = 'Ad Soyad zorunludur.';
         if (!formData.phone.trim() || formData.phone.length < 10) newErrors.phone = 'Geçerli bir telefon numarası giriniz.';
         if (!formData.identity_no.trim()) newErrors.identity_no = 'TC Kimlik No zorunludur.';
-        else if (formData.identity_no.length !== 11) newErrors.identity_no = '11 haneli olmalıdır.';
-        else if (!validateTCKN(formData.identity_no)) newErrors.identity_no = 'Geçersiz TC Kimlik No.';
+        else if (formData.identity_no.length !== 11) newErrors.identity_no = 'GEÇERSİZ TC KİMLİK NO';
+        else if (!validateTCKN(formData.identity_no)) newErrors.identity_no = 'GEÇERSİZ TC KİMLİK NO';
         if (formData.birth_date) {
             const birthYear = parseInt(formData.birth_date.split('-')[0]);
             const currentYear = new Date().getFullYear();
@@ -208,7 +221,26 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;
         setIsDirty(true);
-        setFormData(prev => ({ ...prev, [id]: value }));
+
+        if (id === 'full_name') {
+            // Rakam içermemeli, sadece harf ve boşluk (Türkçe karakterler dahil)
+            if (/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]*$/.test(value) && value.length <= 50) {
+                setFormData(prev => ({ ...prev, [id]: value }));
+            }
+        } else if (id === 'phone') {
+            if (value.length < 4) {
+                setFormData(prev => ({ ...prev, [id]: '+90 ' }));
+            } else {
+                const formatted = formatPhone(value);
+                setFormData(prev => ({ ...prev, [id]: formatted }));
+            }
+        } else if (id === 'identity_no') {
+            if (/^\d*$/.test(value) && value.length <= 11) {
+                setFormData(prev => ({ ...prev, [id]: value }));
+            }
+        } else {
+            setFormData(prev => ({ ...prev, [id]: value }));
+        }
 
         // Clear errors on change
         if (errors[id]) {
@@ -408,7 +440,9 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
 
     const handleBack = () => {
         if (isDirty) {
-            setShowUnsavedModal(true);
+            if (window.confirm("Henüz kaydetmediğiniz değişiklikler var. Sayfadan ayrılmak istediğinize emin misiniz?")) {
+                router.back();
+            }
         } else {
             router.back();
         }
@@ -600,29 +634,38 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                     </button>
                 </div>
 
-                <Button
-                    onClick={handleSave}
-                    disabled={status === 'saving' || status === 'success' || !formData.full_name || !formData.identity_no || !formData.phone}
-                    className={`
-                        font-bold px-8 shadow-lg transition-all duration-300
-                        ${status === 'success'
-                            ? 'bg-green-600 hover:bg-green-700 text-white shadow-green-500/20'
-                            : 'bg-teal-600 hover:bg-teal-700 text-white shadow-teal-500/20'}
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                    `}
-                >
-                    {status === 'saving' ? (
-                        <>
-                            <Loader2 size={18} className="mr-2 animate-spin" /> Kaydediliyor...
-                        </>
-                    ) : status === 'success' ? (
-                        <>
-                            <Check size={18} className="mr-2" /> Değişiklikler Kaydedildi
-                        </>
-                    ) : (
-                        'Değişiklikleri Kaydet'
-                    )}
-                </Button>
+                <div className="flex items-center gap-3">
+                    <Button
+                        variant="ghost"
+                        onClick={handleBack}
+                        className="font-bold px-6 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                    >
+                        İptal
+                    </Button>
+                    <Button
+                        onClick={handleSave}
+                        disabled={status === 'saving' || status === 'success' || !formData.full_name || !formData.identity_no || !formData.phone}
+                        className={`
+                            font-bold px-8 shadow-lg transition-all duration-300
+                            ${status === 'success'
+                                ? 'bg-green-600 hover:bg-green-700 text-white shadow-green-500/20'
+                                : 'bg-teal-600 hover:bg-teal-700 text-white shadow-teal-500/20'}
+                            disabled:opacity-50 disabled:cursor-not-allowed
+                        `}
+                    >
+                        {status === 'saving' ? (
+                            <>
+                                <Loader2 size={18} className="mr-2 animate-spin" /> Kaydediliyor...
+                            </>
+                        ) : status === 'success' ? (
+                            <>
+                                <Check size={18} className="mr-2" /> Değişiklikler Kaydedildi
+                            </>
+                        ) : (
+                            'Değişiklikleri Kaydet'
+                        )}
+                    </Button>
+                </div>
             </div>
 
             {/* Tab Content */}
@@ -649,6 +692,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                         id="full_name"
                                         value={formData.full_name}
                                         onChange={handleInputChange}
+                                        maxLength={50}
                                         className={errors.full_name ? "border-red-500 animate-shake" : ""}
                                     />
                                 </div>
@@ -662,6 +706,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                         maxLength={11}
                                         className={errors.identity_no ? "border-red-500 animate-shake" : ""}
                                     />
+                                    {errors.identity_no && <p className="text-[10px] text-red-500 font-bold mt-1 uppercase tracking-tight">{errors.identity_no}</p>}
                                 </div>
 
                                 <div className="space-y-1.5">
@@ -1129,32 +1174,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                 )}
             </div>
 
-            {/* Unsaved Changes Alerts */}
-            {
-                showUnsavedModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 max-w-sm w-full space-y-4 border border-gray-100 dark:border-slate-800">
-                            <div className="flex items-center gap-3 text-yellow-500">
-                                <div className="h-10 w-10 rounded-full bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center">
-                                    <AlertTriangle size={20} />
-                                </div>
-                                <h3 className="font-bold text-lg text-gray-900 dark:text-white">Kaydedilmemiş Değişiklikler</h3>
-                            </div>
-                            <p className="text-gray-500 dark:text-gray-400 text-sm">
-                                Henüz kaydetmediğiniz değişiklikler var. Sayfadan ayrılırsanız bu değişiklikler kaybolacak.
-                            </p>
-                            <div className="flex items-center justify-end gap-3 pt-2">
-                                <Button variant="outline" onClick={() => setShowUnsavedModal(false)} className="h-9 px-4 text-sm font-bold border-gray-200 dark:border-slate-700">
-                                    İptal
-                                </Button>
-                                <Button onClick={() => router.back()} className="bg-red-600 hover:bg-red-700 text-white h-9 px-4 text-sm font-bold shadow-lg shadow-red-500/20">
-                                    Değişiklikleri Sil ve Çık
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            {/* Unsaved Changes Alerts (Removed in favor of native confirm) */}
 
             {/* Appointment Delete Confirmation Modal */}
             {isDeleteModalOpen && (
@@ -1414,7 +1434,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                 <div className="flex flex-col gap-0.5">
                                     <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Düzenleyen</span>
                                     <div className="flex items-center gap-2 bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 px-2.5 py-1 rounded-lg border border-teal-100 dark:border-teal-500/20 text-[11px] font-bold uppercase tracking-tight shadow-sm">
-                                        <span>Sistem</span>
+                                        <span>{selectedAppointment?.recorded_by || 'Sistem'}</span>
                                     </div>
                                 </div>
                             </div>

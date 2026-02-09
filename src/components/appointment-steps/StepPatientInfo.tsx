@@ -24,6 +24,7 @@ interface StepPatientInfoProps {
 export function StepPatientInfo({ onComplete, initialData }: StepPatientInfoProps) {
     const form = useForm<PatientSchemaType>({
         resolver: zodResolver(patientSchema),
+        mode: "onChange",
         defaultValues: initialData || {
             tcNumber: "",
             firstName: "",
@@ -39,7 +40,7 @@ export function StepPatientInfo({ onComplete, initialData }: StepPatientInfoProp
     return (
         <Card className="border-gray-200 shadow-sm">
             <CardContent className="p-6 sm:p-8">
-                <h2 className="text-xl font-bold text-teal-700 mb-6 font-primary">Hasta Bilgileri</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-6 font-primary tracking-tight">Hasta Bilgileri</h2>
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -48,13 +49,13 @@ export function StepPatientInfo({ onComplete, initialData }: StepPatientInfoProp
                             control={form.control}
                             name="tcNumber"
                             render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="relative pb-5">
                                     <FormLabel className="font-semibold text-gray-700">TC Kimlik No *</FormLabel>
                                     <FormControl>
                                         <Input
                                             placeholder="11 haneli TC Kimlik Numaranız"
                                             maxLength={11}
-                                            className="h-11 bg-white border-gray-300 focus-visible:ring-teal-500"
+                                            className="h-11 bg-white border-gray-300 focus-visible:ring-black"
                                             {...field}
                                             onChange={(e) => {
                                                 const val = e.target.value.replace(/\D/g, '').slice(0, 11);
@@ -62,26 +63,27 @@ export function StepPatientInfo({ onComplete, initialData }: StepPatientInfoProp
                                             }}
                                         />
                                     </FormControl>
-                                    <FormMessage className="text-red-500" />
+                                    <FormMessage className="text-red-500 absolute bottom-0 left-0 text-[11px]" />
                                 </FormItem>
                             )}
                         />
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
                             <FormField
                                 control={form.control}
                                 name="firstName"
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem className="relative pb-5">
                                         <FormLabel className="font-semibold text-gray-700">Ad *</FormLabel>
                                         <FormControl>
                                             <Input
                                                 placeholder="Adınız"
-                                                className="h-11 bg-white border-gray-300 focus-visible:ring-teal-500"
+                                                maxLength={25}
+                                                className="h-11 bg-white border-gray-300 focus-visible:ring-black"
                                                 {...field}
                                             />
                                         </FormControl>
-                                        <FormMessage className="text-red-500" />
+                                        <FormMessage className="text-red-500 absolute bottom-0 left-0 text-[11px]" />
                                     </FormItem>
                                 )}
                             />
@@ -90,16 +92,17 @@ export function StepPatientInfo({ onComplete, initialData }: StepPatientInfoProp
                                 control={form.control}
                                 name="lastName"
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem className="relative pb-5">
                                         <FormLabel className="font-semibold text-gray-700">Soyad *</FormLabel>
                                         <FormControl>
                                             <Input
                                                 placeholder="Soyadınız"
-                                                className="h-11 bg-white border-gray-300 focus-visible:ring-teal-500"
+                                                maxLength={25}
+                                                className="h-11 bg-white border-gray-300 focus-visible:ring-black"
                                                 {...field}
                                             />
                                         </FormControl>
-                                        <FormMessage className="text-red-500" />
+                                        <FormMessage className="text-red-500 absolute bottom-0 left-0 text-[11px]" />
                                     </FormItem>
                                 )}
                             />
@@ -109,7 +112,7 @@ export function StepPatientInfo({ onComplete, initialData }: StepPatientInfoProp
                             control={form.control}
                             name="phone"
                             render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="relative pb-5">
                                     <FormLabel className="font-semibold text-gray-700">Telefon Numaranız *</FormLabel>
                                     <FormControl>
                                         <div className="flex items-center">
@@ -118,23 +121,30 @@ export function StepPatientInfo({ onComplete, initialData }: StepPatientInfoProp
                                             </div>
                                             <Input
                                                 placeholder="5xx xxx xx xx"
-                                                className="h-11 rounded-l-none bg-white border-gray-300 focus-visible:ring-teal-500"
-                                                maxLength={10}
-                                                {...field}
+                                                className="h-11 rounded-l-none bg-white border-gray-300 focus-visible:ring-black"
+                                                maxLength={13} // 10 hane + 3 boşluk
+                                                value={(() => {
+                                                    const clean = field.value.replace(/\D/g, '');
+                                                    let formatted = clean.slice(0, 3);
+                                                    if (clean.length > 3) formatted += " " + clean.slice(3, 6);
+                                                    if (clean.length > 6) formatted += " " + clean.slice(6, 8);
+                                                    if (clean.length > 8) formatted += " " + clean.slice(8, 10);
+                                                    return formatted;
+                                                })()}
                                                 onChange={(e) => {
-                                                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                                                    field.onChange(val);
+                                                    const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                    field.onChange(clean);
                                                 }}
                                             />
                                         </div>
                                     </FormControl>
-                                    <FormMessage className="text-red-500" />
+                                    <FormMessage className="text-red-500 absolute bottom-0 left-0 text-[11px]" />
                                 </FormItem>
                             )}
                         />
 
                         <div className="pt-4 flex justify-end">
-                            <Button type="submit" className="bg-teal-700 hover:bg-teal-800 text-white font-bold h-11 px-8 rounded-lg">
+                            <Button type="submit" className="bg-black hover:bg-gray-800 text-white font-bold h-11 px-8 rounded-lg transition-all">
                                 Devam Et →
                             </Button>
                         </div>

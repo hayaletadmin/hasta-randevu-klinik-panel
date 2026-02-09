@@ -111,6 +111,7 @@ export type Appointment = {
     status: string;
     priority: 'normal' | 'acil' | 'vip' | 'engelli';
     notes?: string;
+    recorded_by?: string;
     // Joined fields for display
     patients?: Patient;
     doctors?: Doctor;
@@ -628,6 +629,27 @@ export const uploadPatientDocument = async (
 
     if (dbError) throw dbError;
     return data;
+};
+
+export const uploadClinicLogo = async (file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `logo_${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from('clinic-assets')
+        .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true
+        });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+        .from('clinic-assets')
+        .getPublicUrl(filePath);
+
+    return data.publicUrl;
 };
 
 export const getPatientDocuments = async (patientId: string): Promise<PatientDocument[]> => {

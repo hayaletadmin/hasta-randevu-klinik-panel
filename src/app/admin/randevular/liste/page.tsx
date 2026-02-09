@@ -22,7 +22,9 @@ import {
     Trash2,
     Save,
     AlertCircle,
-    FileText
+    FileText,
+    ArrowDownWideNarrow,
+    ArrowUpWideNarrow
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -76,6 +78,7 @@ export default function AppointmentListPage() {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [durationSlot, setDurationSlot] = useState(30);
     const [showAppUnsavedModal, setShowAppUnsavedModal] = useState(false);
+    const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
     const mockPatients = [
         { id: 1, fullName: 'Ahmet Yılmaz', identityNo: '12345678901', phone: '+90 555 123 45 67' },
@@ -346,45 +349,54 @@ export default function AppointmentListPage() {
         return 'Tarih Aralığı';
     };
 
-    // Filtreleme Mantığı
-    const filteredAppointments = appointments.filter(app => {
-        const matchesSearch =
-            app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            app.doctor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            app.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            app.process.toLowerCase().includes(searchTerm.toLowerCase());
+    // Filtreleme ve Sıralama Mantığı
+    const sortedAndFilteredAppointments = React.useMemo(() => {
+        let result = appointments.filter(app => {
+            const matchesSearch =
+                app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                app.doctor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                app.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                app.process.toLowerCase().includes(searchTerm.toLowerCase());
 
-        if (!matchesSearch) return false;
+            if (!matchesSearch) return false;
 
-        // Tarih Filtresi
-        if (startDate || endDate) {
-            const [day, month, year] = app.date.split('.');
-            const appDate = new Date(Number(year), Number(month) - 1, Number(day));
+            // Tarih Filtresi
+            if (startDate || endDate) {
+                const [day, month, year] = app.date.split('.');
+                const appDate = new Date(Number(year), Number(month) - 1, Number(day));
 
-            if (startDate) {
-                const start = new Date(startDate);
-                if (appDate < start) return false;
+                if (startDate) {
+                    const start = new Date(startDate);
+                    if (appDate < start) return false;
+                }
+                if (endDate) {
+                    const end = new Date(endDate);
+                    if (appDate > end) return false;
+                }
             }
-            if (endDate) {
-                const end = new Date(endDate);
-                if (appDate > end) return false;
-            }
-        }
 
-        return true;
-    });
+            return true;
+        });
+
+        // Sıralama (created_at'e göre)
+        return result.sort((a, b) => {
+            const dateA = new Date(a.created_at || 0).getTime();
+            const dateB = new Date(b.created_at || 0).getTime();
+            return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+        });
+    }, [appointments, searchTerm, startDate, endDate, sortOrder]);
 
     // Pagination Mantığı
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentAppointments = filteredAppointments.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
+    const currentAppointments = sortedAndFilteredAppointments.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(sortedAndFilteredAppointments.length / itemsPerPage);
 
     const toggleSelectAll = () => {
-        if (selectedRows.length === filteredAppointments.length) {
+        if (selectedRows.length === sortedAndFilteredAppointments.length) {
             setSelectedRows([]);
         } else {
-            setSelectedRows(filteredAppointments.map(app => app.id));
+            setSelectedRows(sortedAndFilteredAppointments.map(app => app.id));
         }
     };
 
@@ -434,7 +446,7 @@ export default function AppointmentListPage() {
     const handleExport = () => {
         const dataToExport = selectedRows.length > 0
             ? appointments.filter(app => selectedRows.includes(app.id))
-            : filteredAppointments;
+            : sortedAndFilteredAppointments;
 
         const ws = XLSX.utils.json_to_sheet(dataToExport);
         const wb = XLSX.utils.book_new();
@@ -449,7 +461,7 @@ export default function AppointmentListPage() {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Randevu Listesi</h1>
                     <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
-                        <CalendarIcon size={14} className="text-teal-500" /> Toplam {filteredAppointments.length} kayıt bulundu
+                        <CalendarIcon size={14} className="text-teal-500" /> Toplam {sortedAndFilteredAppointments.length} kayıt bulundu
                     </p>
                 </div>
 
@@ -488,7 +500,16 @@ export default function AppointmentListPage() {
                                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-teal-500/20 transition-all dark:text-white dark:placeholder-gray-500 outline-none"
                             />
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => setSortOrder(prev => prev === 'newest' ? 'oldest' : 'newest')}
+                                className="border-gray-100 dark:border-slate-800 h-10 px-4 rounded-lg gap-2 font-bold text-xs uppercase tracking-wider text-gray-600 dark:text-gray-400 hover:bg-teal-50 hover:text-teal-600 transition-all shrink-0"
+                            >
+                                {sortOrder === 'newest' ? <ArrowDownWideNarrow size={16} /> : <ArrowUpWideNarrow size={16} />}
+                                {sortOrder === 'newest' ? 'En Yeni' : 'En Eski'}
+                            </Button>
+
                             <DropdownMenu modal={false}>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="outline" className={`border-gray-100 dark:border-slate-800 h-10 px-4 rounded-lg gap-2 font-bold text-xs uppercase tracking-wider transition-all
@@ -726,7 +747,7 @@ export default function AppointmentListPage() {
                             <tr className="bg-gray-50/50 dark:bg-slate-800/30 border-b border-gray-100 dark:border-slate-800 transition-colors">
                                 <th className="p-4 w-[50px]">
                                     <Checkbox
-                                        checked={selectedRows.length === filteredAppointments.length && filteredAppointments.length > 0}
+                                        checked={selectedRows.length === sortedAndFilteredAppointments.length && sortedAndFilteredAppointments.length > 0}
                                         onCheckedChange={toggleSelectAll}
                                         className="border-gray-300 dark:border-slate-600 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
                                     />
@@ -857,7 +878,7 @@ export default function AppointmentListPage() {
 
                     {/* Orta: Bilgi Metni */}
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                        {filteredAppointments.length} KAYITTAN {filteredAppointments.length > 0 ? indexOfFirstItem + 1 : 0}-{Math.min(indexOfLastItem, filteredAppointments.length)} ARASI GÖSTERİLİYOR
+                        {sortedAndFilteredAppointments.length} KAYITTAN {sortedAndFilteredAppointments.length > 0 ? indexOfFirstItem + 1 : 0}-{Math.min(indexOfLastItem, sortedAndFilteredAppointments.length)} ARASI GÖSTERİLİYOR
                     </p>
 
                     {/* Sağ: Pagination Butonları */}
@@ -1168,7 +1189,7 @@ export default function AppointmentListPage() {
                                 <div className="flex flex-col gap-0.5">
                                     <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Düzenleyen</span>
                                     <div className="flex items-center gap-2 bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 px-2.5 py-1 rounded-lg border border-teal-100 dark:border-teal-500/20 text-[11px] font-bold uppercase tracking-tight shadow-sm">
-                                        <span>Sistem</span>
+                                        <span>{selectedAppointment?.recorded_by || 'Sistem'}</span>
                                     </div>
                                 </div>
                             </div>

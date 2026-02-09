@@ -177,6 +177,7 @@ function CreateAppointmentPageContent() {
     const formatPhone = (value: string) => {
         let raw = value.replace(/\D/g, '');
         if (raw.startsWith('90')) raw = raw.slice(2);
+        if (raw.startsWith('0')) raw = raw.slice(1);
         if (raw.length > 10) raw = raw.slice(0, 10);
 
         if (raw.length === 0) return '+90 ';
@@ -355,8 +356,8 @@ function CreateAppointmentPageContent() {
             setFormData(prev => ({ ...prev, [id]: formatted }));
             if (errors.phone) setErrors(prev => ({ ...prev, phone: '' }));
         } else if (id === 'fullName') {
-            // Sadece harf ve boşluk kontrolü (Türkçe karakter destekli)
-            if (/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]*$/.test(value)) {
+            // Sadece harf ve boşluk kontrolü (Türkçe karakter destekli), max 50 chars
+            if (/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]*$/.test(value) && value.length <= 50) {
                 setFormData(prev => ({ ...prev, [id]: value }));
                 setPatientSearchTerm(value);
                 setActiveSearchField('fullName');
@@ -512,7 +513,8 @@ function CreateAppointmentPageContent() {
                 appointment_time: formData.time,
                 status: 'Bekleniyor',
                 priority: formData.priority,
-                notes: `${formData.process ? 'İşlem: ' + formData.process + '. ' : ''}${formData.notes}`
+                notes: `${formData.process ? 'İşlem: ' + formData.process + '. ' : ''}${formData.notes}`,
+                recorded_by: 'Sistem'
             });
 
             setStatus('success');
@@ -647,6 +649,7 @@ function CreateAppointmentPageContent() {
                                             placeholder="Hasta Adı Soyadı"
                                             value={formData.fullName}
                                             onChange={handleInputChange}
+                                            maxLength={50}
                                             className={getInputClass('fullName', "h-11 px-3 bg-white dark:bg-slate-950 border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 transition-all")}
                                         />
                                         {/* İsim Sonuçları */}

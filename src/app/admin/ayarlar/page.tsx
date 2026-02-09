@@ -11,7 +11,11 @@ import {
     X,
     Loader2,
     Check,
-    Settings
+    Settings,
+    Phone,
+    Image as ImageIcon,
+    Upload,
+    Globe
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,7 +39,8 @@ import {
     type Doctor,
     type ClinicSetting,
     type WorkHour,
-    type Closure
+    type Closure,
+    uploadClinicLogo
 } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import { Clock, Users, Calendar, Copy, CalendarX, AlertTriangle } from 'lucide-react';
@@ -55,7 +60,7 @@ const defaultWorkHours: WorkHour[] = [
 ];
 
 export default function SettingsPage() {
-    const [activeTab, setActiveTab] = useState<'staff' | 'appointment' | 'workhours'>('staff');
+    const [activeTab, setActiveTab] = useState<'clinic' | 'staff' | 'appointment' | 'workhours'>('clinic');
     // Edit/Create State
     const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
     const [isDocModalOpen, setIsDocModalOpen] = useState(false);
@@ -99,6 +104,17 @@ export default function SettingsPage() {
     const [workHoursForm, setWorkHoursForm] = useState<WorkHour[]>([]);
     const [originalWorkHours, setOriginalWorkHours] = useState<WorkHour[]>([]);
     const [savingWorkHours, setSavingWorkHours] = useState(false);
+
+    // Clinic Info State
+    const [clinicInfo, setClinicInfo] = useState({
+        name: '',
+        logo: '',
+        phone1: '',
+        website: ''
+    });
+    const [logoFile, setLogoFile] = useState<File | null>(null);
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const [savingClinicInfo, setSavingClinicInfo] = useState(false);
 
     // Closures State
     const [closures, setClosures] = useState<Closure[]>([]);
@@ -157,6 +173,10 @@ export default function SettingsPage() {
                         setClinicWorkHours(defaultWorkHours);
                     }
                 }
+                if (s.key === 'clinic_name') setClinicInfo(prev => ({ ...prev, name: s.value }));
+                if (s.key === 'clinic_logo') { setClinicInfo(prev => ({ ...prev, logo: s.value })); setLogoPreview(s.value); }
+                if (s.key === 'clinic_phone1') setClinicInfo(prev => ({ ...prev, phone1: s.value }));
+                if (s.key === 'clinic_website') setClinicInfo(prev => ({ ...prev, website: s.value }));
             });
             setAppointmentSettings(settingsMap);
             // Mevcut değeri veritabanından gelen değer olarak sakla
@@ -326,6 +346,52 @@ export default function SettingsPage() {
         }
     };
 
+    const handleSaveClinicInfo = async () => {
+        setSavingClinicInfo(true);
+        try {
+            let logoUrl = clinicInfo.logo;
+            if (logoFile) {
+                logoUrl = await uploadClinicLogo(logoFile);
+            }
+
+            await Promise.all([
+                updateClinicSetting('clinic_name', clinicInfo.name),
+                updateClinicSetting('clinic_logo', logoUrl),
+                updateClinicSetting('clinic_phone1', clinicInfo.phone1),
+                updateClinicSetting('clinic_website', clinicInfo.website)
+            ]);
+
+            setClinicInfo(prev => ({ ...prev, logo: logoUrl }));
+            setLogoFile(null);
+            alert('Klinik bilgileri başarıyla kaydedildi.');
+        } catch (error: any) {
+            console.error('Klinik bilgileri kaydedilirken hata:', error);
+            alert(`Hata: ${error.message}`);
+        } finally {
+            setSavingClinicInfo(false);
+        }
+    };
+
+    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 10 * 1024 * 1024) {
+                alert('Logo boyutu 10MB\'dan küçük olmalıdır.');
+                return;
+            }
+            if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+                alert('Sadece PNG ve JPG formatları kabul edilir.');
+                return;
+            }
+            setLogoFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setLogoPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleEditWorkHours = (target: 'clinic' | Doctor) => {
         setEditingWorkHoursTarget(typeof target === 'string' ? target : target.id);
         let hours: WorkHour[];
@@ -483,6 +549,18 @@ export default function SettingsPage() {
                 {/* Sidebar Navigation */}
                 <div className="w-full lg:w-72 shrink-0 space-y-2">
                     <button
+                        onClick={() => setActiveTab('clinic')}
+                        className={cn(
+                            "w-full flex items-center gap-3 px-5 py-3.5 text-sm font-bold rounded-lg transition-all duration-200",
+                            activeTab === 'clinic'
+                                ? "bg-teal-600 text-white shadow-lg shadow-teal-500/20"
+                                : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-slate-800"
+                        )}
+                    >
+                        <Building2 size={18} />
+                        Klinik Bilgileri
+                    </button>
+                    <button
                         onClick={() => setActiveTab('staff')}
                         className={cn(
                             "w-full flex items-center gap-3 px-5 py-3.5 text-sm font-bold rounded-lg transition-all duration-200",
@@ -528,12 +606,112 @@ export default function SettingsPage() {
 
                 {/* Content Area */}
                 <div className="flex-1">
+                    {activeTab === 'clinic' && (
+                        <Card className="border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden rounded-xl">
+                            <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 dark:border-gray-800/50 pb-6 px-6 pt-6">
+                                <div>
+                                    <CardTitle className="text-xl font-bold flex items-center gap-2">
+                                        Klinik Bilgileri
+                                    </CardTitle>
+                                    <CardDescription className="mt-1">
+                                        Klinik adı, logosu ve iletişim bilgilerini yönetin.
+                                    </CardDescription>
+                                </div>
+                                <Button
+                                    onClick={handleSaveClinicInfo}
+                                    disabled={savingClinicInfo}
+                                    className="bg-teal-600 hover:bg-teal-700 text-white h-10 px-5 rounded-lg font-semibold shadow-sm gap-2"
+                                >
+                                    {savingClinicInfo ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                                    Kaydet
+                                </Button>
+                            </CardHeader>
+                            <CardContent className="p-6 space-y-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    {/* Logo Section */}
+                                    <div className="space-y-4">
+                                        <Label className="text-sm font-bold text-gray-700 dark:text-gray-300">Klinik Logosu</Label>
+                                        <div className="flex flex-col items-center gap-4 p-6 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl bg-gray-50/50 dark:bg-slate-900/50">
+                                            {logoPreview ? (
+                                                <div className="relative group">
+                                                    <img src={logoPreview} alt="Logo" className="max-h-32 rounded-lg shadow-sm" />
+                                                    <button
+                                                        onClick={() => { setLogoPreview(null); setLogoFile(null); setClinicInfo(prev => ({ ...prev, logo: '' })); }}
+                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    >
+                                                        <X size={14} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center text-gray-400">
+                                                    <ImageIcon size={48} className="mb-2 opacity-20" />
+                                                    <span className="text-xs">Henüz logo yüklenmedi</span>
+                                                </div>
+                                            )}
+                                            <div className="w-full">
+                                                <label className="flex items-center justify-center gap-2 w-full h-10 px-4 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer transition-colors shadow-sm">
+                                                    <Upload size={16} />
+                                                    {logoPreview ? 'Logoyu Değiştir' : 'Logo Yükle'}
+                                                    <input type="file" className="hidden" accept="image/png,image/jpeg,image/jpg" onChange={handleLogoChange} />
+                                                </label>
+                                                <p className="text-[10px] text-center text-gray-400 mt-2">Max 10MB, PNG veya JPG</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Info Section */}
+                                    <div className="space-y-6">
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-bold text-gray-700 dark:text-gray-300">Klinik Adı</Label>
+                                            <Input
+                                                placeholder="Klinik adını giriniz"
+                                                value={clinicInfo.name}
+                                                maxLength={100}
+                                                onChange={(e) => setClinicInfo(prev => ({ ...prev, name: e.target.value }))}
+                                                className="h-11 bg-white dark:bg-slate-900 border-gray-200 dark:border-gray-800 focus-visible:ring-teal-500 transition-all font-medium"
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-bold text-gray-700 dark:text-gray-300">İletişim No (Max 11 Hane)</Label>
+                                                <div className="relative">
+                                                    <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                    <Input
+                                                        placeholder="05XXXXXXXXX"
+                                                        value={clinicInfo.phone1}
+                                                        maxLength={11}
+                                                        onChange={(e) => setClinicInfo(prev => ({ ...prev, phone1: e.target.value.replace(/\D/g, '') }))}
+                                                        className="h-11 pl-10 bg-white dark:bg-slate-900 border-gray-200 dark:border-gray-800 focus-visible:ring-teal-500 transition-all font-medium"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-bold text-gray-700 dark:text-gray-300">Web Sitesi</Label>
+                                                <div className="relative">
+                                                    <Globe size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                    <Input
+                                                        placeholder="www.klinikadi.com"
+                                                        value={clinicInfo.website}
+                                                        maxLength={500}
+                                                        onChange={(e) => setClinicInfo(prev => ({ ...prev, website: e.target.value }))}
+                                                        className="h-11 pl-10 bg-white dark:bg-slate-900 border-gray-200 dark:border-gray-800 focus-visible:ring-teal-500 transition-all font-medium"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {activeTab === 'staff' && (
                         <Card className="border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden rounded-xl">
                             <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-gray-800/50 pb-6 px-6 pt-6">
                                 <div>
                                     <CardTitle className="text-xl font-bold flex items-center gap-2">
-                                        Kurumsal Kadro
+                                        Bölüm & Doktor Yönetimi
                                     </CardTitle>
                                     <CardDescription className="mt-1">
                                         Bölümler ve bu bölümlere bağlı doktorların listesini yönetin.
@@ -575,7 +753,7 @@ export default function SettingsPage() {
                                                                     <div className="p-1.5 bg-white dark:bg-slate-900 text-teal-600 dark:text-teal-400 rounded-lg shadow-sm">
                                                                         <Building2 size={16} />
                                                                     </div>
-                                                                    <span className="font-bold text-gray-900 dark:text-white text-base tracking-tight uppercase">{dept.name}</span>
+                                                                    <span className="font-bold text-gray-900 dark:text-white text-base tracking-tight">{dept.name}</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-1 opacity-0 group-hover/dept:opacity-100 transition-all">
                                                                     <Button size="icon" variant="ghost" onClick={() => handleEditDept(dept)} className="h-8 w-8 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-lg">

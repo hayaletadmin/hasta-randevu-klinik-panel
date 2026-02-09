@@ -15,7 +15,9 @@ import {
     Download,
     User,
     Phone,
-    CreditCard
+    CreditCard,
+    ArrowDownWideNarrow,
+    ArrowUpWideNarrow
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,6 +40,18 @@ export default function PatientListPage() {
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedRows, setSelectedRows] = useState<string[]>([]);
+
+    const formatPhone = (value: string | undefined) => {
+        if (!value) return '-';
+        let raw = value.replace(/\D/g, '');
+        if (raw.startsWith('90')) raw = raw.slice(2);
+        if (raw.length > 10) raw = raw.slice(0, 10);
+
+        if (raw.length === 0) return value;
+        if (raw.length < 10) return value;
+
+        return `+90 ${raw.slice(0, 3)} ${raw.slice(3, 6)} ${raw.slice(6, 8)} ${raw.slice(8)}`;
+    };
     const [patients, setPatients] = useState<Patient[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -46,6 +60,7 @@ export default function PatientListPage() {
     const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
     const [calendarViewDate, setCalendarViewDate] = useState(new Date());
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
     // Initial Fetch
     const fetchPatients = async () => {
@@ -87,40 +102,45 @@ export default function PatientListPage() {
         return 'Tarih Aralığı';
     };
 
-    // Filter Logic
-    const filteredPatients = patients.filter(patient => {
-        // Search term logic is partly handled by DB fetch, but we can do client side refinement if needed
-        // Assuming fetchPatients handles basic search.
-        // Date Logic
-        if (startDate || endDate) {
-            if (!patient.created_at) return false;
-            const patientDate = new Date(patient.created_at);
-            // reset time for compassion
-            patientDate.setHours(0, 0, 0, 0);
+    // Filter and Sort Logic
+    const sortedAndFilteredPatients = React.useMemo(() => {
+        let result = patients.filter(patient => {
+            if (startDate || endDate) {
+                if (!patient.created_at) return false;
+                const patientDate = new Date(patient.created_at);
+                patientDate.setHours(0, 0, 0, 0);
 
-            if (startDate) {
-                const start = new Date(startDate);
-                if (patientDate < start) return false;
+                if (startDate) {
+                    const start = new Date(startDate);
+                    if (patientDate < start) return false;
+                }
+                if (endDate) {
+                    const end = new Date(endDate);
+                    if (patientDate > end) return false;
+                }
             }
-            if (endDate) {
-                const end = new Date(endDate);
-                if (patientDate > end) return false;
-            }
-        }
-        return true;
-    });
+            return true;
+        });
+
+        // Sorting
+        return result.sort((a, b) => {
+            const dateA = new Date(a.created_at || 0).getTime();
+            const dateB = new Date(b.created_at || 0).getTime();
+            return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+        });
+    }, [patients, startDate, endDate, sortOrder]);
 
     // Pagination
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentPatients = filteredPatients.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
+    const currentPatients = sortedAndFilteredPatients.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(sortedAndFilteredPatients.length / itemsPerPage);
 
     const toggleSelectAll = () => {
-        if (selectedRows.length === filteredPatients.length && filteredPatients.length > 0) {
+        if (selectedRows.length === sortedAndFilteredPatients.length && sortedAndFilteredPatients.length > 0) {
             setSelectedRows([]);
         } else {
-            setSelectedRows(filteredPatients.map(p => p.id));
+            setSelectedRows(sortedAndFilteredPatients.map(p => p.id));
         }
     };
 
@@ -146,7 +166,7 @@ export default function PatientListPage() {
     const handleExport = () => {
         const dataToExport = selectedRows.length > 0
             ? patients.filter(p => selectedRows.includes(p.id))
-            : filteredPatients;
+            : sortedAndFilteredPatients;
 
         const ws = XLSX.utils.json_to_sheet(dataToExport);
         const wb = XLSX.utils.book_new();
@@ -161,7 +181,7 @@ export default function PatientListPage() {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Hasta Listesi</h1>
                     <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
-                        <User size={14} className="text-teal-500" /> Toplam {filteredPatients.length} kayıt bulundu
+                        <User size={14} className="text-teal-500" /> Toplam {sortedAndFilteredPatients.length} kayıt bulundu
                     </p>
                 </div>
 
@@ -186,8 +206,8 @@ export default function PatientListPage() {
             {/* Filtreler ve Arama */}
             <Card className="border-none shadow-sm bg-white dark:bg-slate-900 overflow-visible transition-all duration-300">
                 <CardContent className="p-4 space-y-4">
-                    <div className="flex flex-col md:flex-row gap-4">
-                        <div className="relative flex-1">
+                    <div className="flex flex-col md:flex-row gap-4 items-center">
+                        <div className="relative flex-1 w-full">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                             <input
                                 type="text"
@@ -200,10 +220,19 @@ export default function PatientListPage() {
                                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-teal-500/20 transition-all dark:text-white dark:placeholder-gray-500 outline-none"
                             />
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+                            <Button
+                                variant="outline"
+                                onClick={() => setSortOrder(prev => prev === 'newest' ? 'oldest' : 'newest')}
+                                className="border-gray-100 dark:border-slate-800 h-10 px-4 rounded-lg gap-2 font-bold text-xs uppercase tracking-wider text-gray-600 dark:text-gray-400 hover:bg-teal-50 hover:text-teal-600 transition-all shrink-0"
+                            >
+                                {sortOrder === 'newest' ? <ArrowDownWideNarrow size={16} /> : <ArrowUpWideNarrow size={16} />}
+                                {sortOrder === 'newest' ? 'En Yeni' : 'En Eski'}
+                            </Button>
+
                             <DropdownMenu modal={false}>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className={`border-gray-100 dark:border-slate-800 h-10 px-4 rounded-lg gap-2 font-bold text-xs uppercase tracking-wider transition-all
+                                    <Button variant="outline" className={`border-gray-100 dark:border-slate-800 h-10 px-4 rounded-lg gap-2 font-bold text-xs uppercase tracking-wider transition-all shrink-0
                                         ${startDate || endDate || selectedPreset
                                             ? 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-500/10 dark:text-teal-400'
                                             : 'text-gray-600 dark:text-gray-400 hover:bg-teal-50 hover:text-teal-600 hover:border-teal-200'
@@ -410,7 +439,7 @@ export default function PatientListPage() {
                             <tr className="bg-gray-50/50 dark:bg-slate-800/30 border-b border-gray-100 dark:border-slate-800 transition-colors">
                                 <th className="px-3 py-3 w-[40px]">
                                     <Checkbox
-                                        checked={selectedRows.length === filteredPatients.length && filteredPatients.length > 0}
+                                        checked={selectedRows.length === sortedAndFilteredPatients.length && sortedAndFilteredPatients.length > 0}
                                         onCheckedChange={toggleSelectAll}
                                         className="border-gray-300 dark:border-slate-600 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
                                     />
@@ -439,7 +468,7 @@ export default function PatientListPage() {
                                         </td>
                                         <td className="px-3 py-3">
                                             <span className="text-gray-600 dark:text-gray-300 font-medium text-xs">
-                                                {patient.phone}
+                                                {formatPhone(patient.phone)}
                                             </span>
                                         </td>
                                         <td className="px-3 py-3">
@@ -509,7 +538,7 @@ export default function PatientListPage() {
 
                     {/* Orta: Bilgi Metni */}
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                        {filteredPatients.length} KAYITTAN {filteredPatients.length > 0 ? indexOfFirstItem + 1 : 0}-{Math.min(indexOfLastItem, filteredPatients.length)} ARASI GÖSTERİLİYOR
+                        {sortedAndFilteredPatients.length} KAYITTAN {sortedAndFilteredPatients.length > 0 ? indexOfFirstItem + 1 : 0}-{Math.min(indexOfLastItem, sortedAndFilteredPatients.length)} ARASI GÖSTERİLİYOR
                     </p>
 
                     {/* Sağ: Pagination Butonları */}

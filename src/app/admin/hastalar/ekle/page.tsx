@@ -104,6 +104,7 @@ export default function AddPatientPage() {
     const formatPhone = (value: string) => {
         let raw = value.replace(/\D/g, '');
         if (raw.startsWith('90')) raw = raw.slice(2);
+        if (raw.startsWith('0')) raw = raw.slice(1);
         if (raw.length > 10) raw = raw.slice(0, 10);
 
         if (raw.length === 0) return '+90 ';
@@ -151,8 +152,8 @@ export default function AddPatientPage() {
                 return newErr;
             });
         } else if (id === 'full_name') {
-            // Letters and spaces only
-            if (/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]*$/.test(value)) {
+            // Letters and spaces only, max 50 chars
+            if (/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]*$/.test(value) && value.length <= 50) {
                 setFormData(prev => ({ ...prev, [id]: value }));
                 if (errors.full_name) setErrors(prev => {
                     const newErr = { ...prev };
@@ -336,6 +337,7 @@ export default function AddPatientPage() {
                                         value={formData.full_name}
                                         onChange={handleInputChange}
                                         placeholder="Örn: Ahmet Yılmaz"
+                                        maxLength={50}
                                         className={errors.full_name ? "border-red-500 animate-shake" : ""}
                                     />
                                     {errors.full_name && <span className="text-[10px] text-red-500 font-bold">{errors.full_name}</span>}
