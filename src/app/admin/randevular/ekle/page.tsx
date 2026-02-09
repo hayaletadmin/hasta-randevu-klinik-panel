@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import {
     Calendar as CalendarIcon,
     Clock,
@@ -39,7 +39,7 @@ import type { Department, Doctor, Patient, WorkHour, Closure } from '@/lib/supab
 export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
 
-export default function CreateAppointmentPage() {
+function CreateAppointmentPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [status, setStatus] = useState('idle');
@@ -1024,5 +1024,18 @@ export default function CreateAppointmentPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+// Wrap with Suspense to handle useSearchParams during build
+export default function CreateAppointmentPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="animate-spin text-teal-600" size={32} />
+            </div>
+        }>
+            <CreateAppointmentPageContent />
+        </Suspense>
     );
 }
