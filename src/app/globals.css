@@ -107,3 +107,12 @@
 .animate-shake {
   animation: shake 0.2s ease-in-out 3;
 }
+
+@keyframes shimmer {
+  from { background-position: 0 0; }
+  to { background-position: 40px 0; }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s linear infinite;
+}

@@ -21,6 +21,8 @@ export const metadata: Metadata = {
   },
 };
 
+import AnalyticsTracker from "@/components/analytics/AnalyticsTracker";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,6 +33,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} antialiased font-sans`}
       >
+        <AnalyticsTracker />
         {children}
       </body>
     </html>

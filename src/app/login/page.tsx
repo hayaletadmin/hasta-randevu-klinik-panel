@@ -27,7 +27,7 @@ export default function LoginPage() {
             // Cookie for middleware (session Supabase tarafından yönetiliyor)
             document.cookie = `admin_logged_in=true; path=/; max-age=86400; SameSite=Lax`;
 
-            router.push('/admin/dashboard');
+            router.push('/admin');
             router.refresh();
 
         } catch (err: any) {
