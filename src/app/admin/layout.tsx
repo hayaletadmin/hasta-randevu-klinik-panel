@@ -86,8 +86,14 @@ export default function AdminLayout({
         setIsNotificationsOpen(false);
         if (notification.link) {
             let targetLink = notification.link;
+
+            // Fix old notification links: /admin/randevular -> /admin/randevular/liste
+            if (targetLink === '/admin/randevular') {
+                targetLink = '/admin/randevular/liste';
+            }
+
             // Add highlight query param if related_id exists for appointments
-            if (notification.type === 'appointment' && notification.related_id && targetLink.includes('/admin/randevular/liste')) {
+            if (notification.type === 'appointment' && notification.related_id && targetLink.includes('/admin/randevular')) {
                 // If it already has query params, append with &, else with ?
                 targetLink = targetLink.includes('?')
                     ? `${targetLink}&highlight=${notification.related_id}`
