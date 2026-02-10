@@ -10,9 +10,6 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
   },
 
-  // Better build output
-  output: 'standalone',
-
   // Disable static page generation for dynamic pages
   experimental: {
     // This helps with build-time environment issues
