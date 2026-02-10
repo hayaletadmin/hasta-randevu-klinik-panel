@@ -318,7 +318,7 @@ export const createAppointment = async (appointmentData: Omit<Appointment, 'id'>
             const message = `${patient.full_name}, ${appointmentData.appointment_date} tarihinde randevu oluşturdu`;
             await createNotification({
                 message,
-                link: '/admin/randevular',
+                link: '/admin/randevular/liste',
                 related_id: data.id,
                 type: 'appointment'
             });

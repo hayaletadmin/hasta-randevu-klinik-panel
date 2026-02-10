@@ -87,7 +87,7 @@ export default function AdminLayout({
         if (notification.link) {
             let targetLink = notification.link;
             // Add highlight query param if related_id exists for appointments
-            if (notification.type === 'appointment' && notification.related_id && targetLink.includes('/admin/randevular')) {
+            if (notification.type === 'appointment' && notification.related_id && targetLink.includes('/admin/randevular/liste')) {
                 // If it already has query params, append with &, else with ?
                 targetLink = targetLink.includes('?')
                     ? `${targetLink}&highlight=${notification.related_id}`
