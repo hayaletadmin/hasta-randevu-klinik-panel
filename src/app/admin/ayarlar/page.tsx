@@ -605,20 +605,22 @@ export default function SettingsPage() {
                     {activeTab === 'clinic' && (
                         <div className="space-y-6">
                             <Card className="border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden rounded-xl bg-white dark:bg-slate-900">
-                                <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 dark:border-gray-800/50 pb-6 px-6 pt-6">
-                                    <div className="flex items-center gap-4">
+                                <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-gray-100 dark:border-gray-800/50 pb-4 md:pb-6 px-4 md:px-6 pt-4 md:pt-6">
+                                    <div className="flex items-start gap-4">
                                         <div className="p-3 bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 rounded-xl shadow-sm">
                                             <Building2 size={24} />
                                         </div>
                                         <div>
-                                            <CardTitle className="text-xl font-bold tracking-tight">Klinik Bilgileri</CardTitle>
-                                            <CardDescription className="mt-1 font-medium text-gray-400">Genel klinik ayarları ve dijital kimlik bilgilerini buradan güncelleyebilirsiniz.</CardDescription>
+                                            <CardTitle className="text-lg md:text-xl font-bold tracking-tight">Klinik Bilgileri</CardTitle>
+                                            <CardDescription className="mt-1 font-medium text-gray-400 text-sm md:text-base">
+                                                Genel klinik ayarları ve dijital kimlik bilgilerini buradan güncelleyebilirsiniz.
+                                            </CardDescription>
                                         </div>
                                     </div>
                                     <Button
                                         onClick={handleSaveClinicInfo}
                                         disabled={savingClinicInfo}
-                                        className="bg-teal-600 hover:bg-teal-700 text-white h-11 px-6 rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-teal-500/20 gap-2"
+                                        className="w-full md:w-auto bg-teal-600 hover:bg-teal-700 text-white h-11 md:h-11 px-4 md:px-6 rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-teal-500/20 gap-2 text-sm md:text-base"
                                     >
                                         {savingClinicInfo ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                                         Değişiklikleri Kaydet

@@ -29,9 +29,10 @@ interface SidebarItemProps {
     hasSubmenu?: boolean;
     isSubmenuOpen?: boolean;
     onToggleSubmenu?: () => void;
+    onNavigate?: () => void;
 }
 
-const SidebarItem = ({ icon, label, href, active, hasSubmenu, isSubmenuOpen, onToggleSubmenu }: SidebarItemProps) => {
+const SidebarItem = ({ icon, label, href, active, hasSubmenu, isSubmenuOpen, onToggleSubmenu, onNavigate }: SidebarItemProps) => {
     const content = (
         <div
             className={`
@@ -59,7 +60,7 @@ const SidebarItem = ({ icon, label, href, active, hasSubmenu, isSubmenuOpen, onT
     }
 
     return (
-        <Link href={href}>
+        <Link href={href} onClick={onNavigate}>
             {content}
         </Link>
     );
@@ -76,7 +77,11 @@ const SidebarGroup = ({ label, children }: { label: string, children: React.Reac
     </div>
 );
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+    onNavigate?: () => void;
+}
+
+export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
     const pathname = usePathname();
     const [mounted, setMounted] = useState(false);
     const [isDark, setIsDark] = useState(false);
@@ -141,6 +146,7 @@ export default function AdminSidebar() {
                     label="Kontrol Paneli"
                     href="/admin"
                     active={pathname === '/admin'}
+                    onNavigate={onNavigate}
                 />
 
                 <div className="mt-8">
@@ -158,9 +164,9 @@ export default function AdminSidebar() {
                         {/* Alt Menü: Randevular */}
                         {openMenus.randevular && (
                             <div className="ml-4 border-l border-gray-100 dark:border-slate-800 mt-1 mb-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                                <SidebarItem icon={<PlusCircle size={16} />} label="Randevu Oluştur" href="/admin/randevular/ekle" active={pathname === '/admin/randevular/ekle'} />
-                                <SidebarItem icon={<Calendar size={16} />} label="Randevu Takvimi" href="/admin/randevular/takvim" active={pathname === '/admin/randevular/takvim'} />
-                                <SidebarItem icon={<List size={16} />} label="Randevu Listesi" href="/admin/randevular/liste" active={pathname === '/admin/randevular/liste'} />
+                                <SidebarItem icon={<PlusCircle size={16} />} label="Randevu Oluştur" href="/admin/randevular/ekle" active={pathname === '/admin/randevular/ekle'} onNavigate={onNavigate} />
+                                <SidebarItem icon={<Calendar size={16} />} label="Randevu Takvimi" href="/admin/randevular/takvim" active={pathname === '/admin/randevular/takvim'} onNavigate={onNavigate} />
+                                <SidebarItem icon={<List size={16} />} label="Randevu Listesi" href="/admin/randevular/liste" active={pathname === '/admin/randevular/liste'} onNavigate={onNavigate} />
                             </div>
                         )}
 
@@ -177,9 +183,9 @@ export default function AdminSidebar() {
                         {/* Alt Menü: Hastalar */}
                         {openMenus.hastalar && (
                             <div className="ml-4 border-l border-gray-100 dark:border-slate-800 mt-1 mb-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                                <SidebarItem icon={<UserPlus size={16} />} label="Hasta Ekle" href="/admin/hastalar/ekle" active={pathname === '/admin/hastalar/ekle'} />
-                                <SidebarItem icon={<List size={16} />} label="Tüm Hastalar" href="/admin/hastalar/liste" active={pathname === '/admin/hastalar/liste'} />
-                                <SidebarItem icon={<FolderTree size={16} />} label="Hasta Grupları" href="/admin/hastalar/gruplar" active={pathname === '/admin/hastalar/gruplar'} />
+                                <SidebarItem icon={<UserPlus size={16} />} label="Hasta Ekle" href="/admin/hastalar/ekle" active={pathname === '/admin/hastalar/ekle'} onNavigate={onNavigate} />
+                                <SidebarItem icon={<List size={16} />} label="Tüm Hastalar" href="/admin/hastalar/liste" active={pathname === '/admin/hastalar/liste'} onNavigate={onNavigate} />
+                                <SidebarItem icon={<FolderTree size={16} />} label="Hasta Grupları" href="/admin/hastalar/gruplar" active={pathname === '/admin/hastalar/gruplar'} onNavigate={onNavigate} />
                             </div>
                         )}
                     </SidebarGroup>
@@ -190,12 +196,14 @@ export default function AdminSidebar() {
                             label="Ayarlar"
                             href="/admin/ayarlar"
                             active={pathname === '/admin/ayarlar'}
+                            onNavigate={onNavigate}
                         />
                         <SidebarItem
                             icon={<HelpCircle size={20} />}
                             label="Yardım / Destek"
                             href="/admin/yardim"
                             active={pathname === '/admin/yardim'}
+                            onNavigate={onNavigate}
                         />
                     </SidebarGroup>
                 </div>

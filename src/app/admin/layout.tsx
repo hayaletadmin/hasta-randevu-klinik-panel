@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { Search, Bell, ChevronDown, ChevronRight, Settings, LogOut, Check, X } from 'lucide-react';
+import { Search, Menu, Bell, ChevronDown, ChevronRight, Settings, LogOut, Check, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -13,6 +13,7 @@ import {
     markAllNotificationsAsRead,
     type AppNotification
 } from '@/lib/supabase';
+import { signOut } from '@/lib/auth';
 
 export default function AdminLayout({
     children,
@@ -21,6 +22,7 @@ export default function AdminLayout({
 }) {
     const [isProfileOpen, setIsProfileOpen] = React.useState(false);
     const [clinicName, setClinicName] = useState("Klinik Paneli");
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // Notification State
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -116,32 +118,64 @@ export default function AdminLayout({
         };
     }, [notificationRef]);
 
+    const handleLogout = async () => {
+        try {
+            await signOut();
+        } catch (error) {
+            console.error('Çıkış sırasında hata:', error);
+        } finally {
+            document.cookie = 'admin_logged_in=; path=/; max-age=0; SameSite=Lax';
+            setIsProfileOpen(false);
+            router.push('/login');
+            router.refresh();
+        }
+    };
+
     return (
         <div className="flex min-h-screen bg-[#F8FAFC] dark:bg-slate-950 transition-colors duration-200">
-            {/* Sidebar */}
-            <AdminSidebar />
+            <div className="hidden md:block">
+                <AdminSidebar />
+            </div>
 
-            {/* Ana İçerik */}
+            {isSidebarOpen && (
+                <div className="fixed inset-0 z-40 flex md:hidden">
+                    <div className="w-64 max-w-full h-full bg-white dark:bg-slate-900 shadow-2xl">
+                        <AdminSidebar onNavigate={() => setIsSidebarOpen(false)} />
+                    </div>
+                    <button
+                        type="button"
+                        className="flex-1 bg-slate-950/60 backdrop-blur-sm"
+                        onClick={() => setIsSidebarOpen(false)}
+                    />
+                </div>
+            )}
+
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-                {/* Üst Bar / Header */}
-                <header className="h-20 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between px-8 sticky top-0 z-20 transition-colors duration-200">
-                    <div className="flex items-center gap-4 flex-1 max-w-xl">
-                        <div className="relative w-full">
+                <header className="h-20 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between px-4 md:px-8 sticky top-0 z-20 transition-colors duration-200">
+                    <div className="flex items-center gap-3 md:gap-4 flex-1 max-w-xl">
+                        <button
+                            type="button"
+                            onClick={() => setIsSidebarOpen(true)}
+                            className="md:hidden p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-slate-800 transition-colors"
+                        >
+                            <Menu size={22} />
+                        </button>
+                        <div className="relative w-[55vw] max-w-xs md:w-full">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                             <input
                                 type="text"
                                 placeholder="Hızlı arama yap..."
                                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-teal-500/20 transition-all dark:text-white dark:placeholder-gray-500"
                             />
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 scale-90 opacity-40">
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-1 scale-90 opacity-40">
                                 <kbd className="px-1.5 py-0.5 border rounded text-[10px] font-sans dark:border-slate-700 dark:text-gray-400">⌘</kbd>
                                 <kbd className="px-1.5 py-0.5 border rounded text-[10px] font-sans dark:border-slate-700 dark:text-gray-400">K</kbd>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-4 md:gap-6">
                         {/* Notification System */}
                         <div className="relative" ref={notificationRef}>
                             <button
@@ -241,7 +275,10 @@ export default function AdminLayout({
                                             Klinik Ayarları
                                         </Link>
                                         <div className="h-px bg-gray-50 dark:bg-slate-800 my-1"></div>
-                                        <button className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all group">
+                                        <button
+                                            onClick={handleLogout}
+                                            className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all group"
+                                        >
                                             <LogOut size={18} className="text-red-400 group-hover:text-red-600" />
                                             Çıkış Yap
                                         </button>

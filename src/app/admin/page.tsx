@@ -205,30 +205,30 @@ export default function AdminDashboard() {
             {/* Karşılama Başlığı */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Kontrol Paneli</h1>
+                    <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Hoşgeldiniz</h1>
                     <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm font-bold text-gray-900 dark:text-slate-300 leading-none">KlinikPanel&apos;e tekrar hoş geldiniz! 👋</span>
-                        <span className="text-xs text-gray-400 dark:text-gray-500">{currentDate}</span>
+                        <span className="px-2.5 py-1 bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 text-[10px] sm:text-xs font-black rounded-full uppercase tracking-widest leading-none">{currentDate}</span>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 pb-2 md:pb-0">
-                    <div className="relative flex p-1 bg-white dark:bg-slate-900 rounded-lg border border-gray-100 dark:border-slate-800 items-center transition-colors duration-200">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pb-2 md:pb-0">
+                    <div className="relative flex p-1 bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 items-center transition-colors duration-200 shadow-sm grow sm:grow-0">
                         <button
                             onClick={() => setIsRangeOpen(!isRangeOpen)}
-                            className="px-4 py-1.5 text-xs font-bold text-gray-400 dark:text-gray-500 border border-gray-100 dark:border-slate-800 rounded-lg whitespace-nowrap hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                            className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 text-[10px] sm:text-xs font-bold text-gray-400 dark:text-gray-500 rounded-lg whitespace-nowrap hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
                         >
                             {displayDateRange()}
                         </button>
+                        <div className="w-px h-6 bg-gray-100 dark:bg-slate-800 mx-1" />
                         <button
                             onClick={() => setIsRangeOpen(!isRangeOpen)}
-                            className="px-4 py-1.5 text-xs font-bold text-gray-900 dark:text-white bg-white dark:bg-slate-800 rounded-lg ml-2 flex items-center gap-1 whitespace-nowrap border border-gray-100 dark:border-slate-700 hover:border-teal-500 transition-all shadow-sm"
+                            className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 text-[10px] sm:text-xs font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-slate-800 rounded-lg flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap border border-gray-100 dark:border-slate-700 hover:border-teal-500 transition-all shadow-sm"
                         >
-                            {rangeLabels[timeRange]} <ChevronRight size={14} className={`transition-transform duration-200 ${isRangeOpen ? 'rotate-90' : ''}`} />
+                            {rangeLabels[timeRange]} <ChevronRight size={14} className={`transition-transform duration-200 ${isRangeOpen ? 'rotate-90' : ''} text-teal-600`} />
                         </button>
 
                         {isRangeOpen && (
-                            <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-gray-100 dark:border-slate-800 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                            <div className="absolute top-full right-0 mt-3 w-48 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-800 z-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                                 {(['24h', '1w', '1m', 'all'] as TimeRange[]).map((r) => (
                                     <button
                                         key={r}
@@ -236,7 +236,7 @@ export default function AdminDashboard() {
                                             setTimeRange(r);
                                             setIsRangeOpen(false);
                                         }}
-                                        className={`w-full text-left px-4 py-3 text-sm font-medium transition-colors hover:bg-teal-50 dark:hover:bg-teal-900/20 ${timeRange === r ? 'text-teal-600 dark:text-teal-400 bg-teal-50/50 dark:bg-teal-900/10' : 'text-gray-600 dark:text-gray-400'}`}
+                                        className={`w-full text-left px-5 py-3.5 text-xs font-bold transition-all hover:bg-teal-50 dark:hover:bg-teal-900/20 border-b border-gray-50 dark:border-slate-800 last:border-0 ${timeRange === r ? 'text-teal-600 dark:text-teal-400 bg-teal-50/50 dark:bg-teal-900/10' : 'text-gray-600 dark:text-gray-400'}`}
                                     >
                                         {rangeLabels[r]}
                                     </button>
@@ -245,8 +245,8 @@ export default function AdminDashboard() {
                         )}
                     </div>
 
-                    <Link href="/admin/hastalar/ekle">
-                        <Button className="rounded-lg h-10 px-6 bg-teal-600 hover:bg-teal-700 flex items-center gap-2 font-bold text-xs whitespace-nowrap">
+                    <Link href="/admin/hastalar/ekle" className="sm:w-auto">
+                        <Button className="w-full sm:w-auto rounded-xl h-11 px-6 bg-teal-600 hover:bg-teal-700 flex items-center justify-center gap-2 font-black text-[10px] sm:text-xs uppercase tracking-widest shadow-lg shadow-teal-600/20 active:scale-95 transition-all">
                             <Plus size={18} /> Yeni Hasta Ekle
                         </Button>
                     </Link>
@@ -284,7 +284,7 @@ export default function AdminDashboard() {
             {/* Orta Panel */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Hasta İstatistikleri Grafiği */}
-                <Card className="lg:col-span-2 border-none shadow-sm dark:bg-slate-900">
+                <Card className="lg:col-span-2 border-none shadow-sm dark:bg-slate-900 overflow-hidden">
                     <CardContent className="p-6">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="font-bold text-gray-900 dark:text-white">Hasta İstatistikleri</h3>
@@ -292,42 +292,56 @@ export default function AdminDashboard() {
                             </div>
                         </div>
 
-                        <div className="h-64 w-full relative">
-                            <svg className="w-full h-full overflow-visible">
-                                <line x1="0" y1="20%" x2="100%" y2="20%" stroke="currentColor" className="text-gray-100 dark:text-slate-800" strokeWidth="1" />
-                                <line x1="0" y1="40%" x2="100%" y2="40%" stroke="currentColor" className="text-gray-100 dark:text-slate-800" strokeWidth="1" />
-                                <line x1="0" y1="60%" x2="100%" y2="60%" stroke="currentColor" className="text-gray-100 dark:text-slate-800" strokeWidth="1" />
-                                <line x1="0" y1="80%" x2="100%" y2="80%" stroke="currentColor" className="text-gray-100 dark:text-slate-800" strokeWidth="1" />
+                        <div className="w-full relative">
+                            <div className="w-full overflow-x-auto pb-4 scrollbar-hide">
+                                <div className="min-w-[450px] h-64 relative">
+                                    <svg className="w-full h-full" viewBox="0 0 550 200">
+                                        {/* Grid Lines */}
+                                        {[0.2, 0.4, 0.6, 0.8].map((y) => (
+                                            <line key={y} x1="0" y1={`${y * 100}%`} x2="100%" y2={`${y * 100}%`} stroke="currentColor" className="text-gray-100 dark:text-slate-800" strokeWidth="1" />
+                                        ))}
 
-                                <path
-                                    d="M0,150 L50,110 L100,130 L150,80 L200,100 L250,60 L300,90 L350,50 L400,70 L450,40 L500,80 L550,60"
-                                    fill="none"
-                                    stroke="#0D9488"
-                                    strokeWidth="3"
-                                    style={{ strokeLinejoin: 'round', strokeLinecap: 'round' }}
-                                />
+                                        {/* Chart Path */}
+                                        <path
+                                            d="M0,150 L50,110 L100,130 L150,80 L200,100 L250,60 L300,90 L350,50 L400,70 L450,40 L500,80 L550,60"
+                                            fill="none"
+                                            stroke="#0D9488"
+                                            strokeWidth="3"
+                                            strokeLinejoin="round"
+                                            strokeLinecap="round"
+                                        />
 
-                                <path
-                                    d="M0,150 L50,110 L100,130 L150,80 L200,100 L250,60 L300,90 L350,50 L400,70 L450,40 L500,80 L550,60 L550,200 L0,200 Z"
-                                    fill="url(#tealGradient)"
-                                    opacity="0.1"
-                                />
+                                        {/* Gradient Fill */}
+                                        <path
+                                            d="M0,150 L50,110 L100,130 L150,80 L200,100 L250,60 L300,90 L350,50 L400,70 L450,40 L500,80 L550,60 V200 H0 Z"
+                                            fill="url(#tealGradient)"
+                                            opacity="0.1"
+                                        />
 
-                                <defs>
-                                    <linearGradient id="tealGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#0D9488" />
-                                        <stop offset="100%" stopColor="#0D9488" stopOpacity="0" />
-                                    </linearGradient>
-                                </defs>
+                                        <defs>
+                                            <linearGradient id="tealGradient" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor="#0D9488" />
+                                                <stop offset="100%" stopColor="#0D9488" stopOpacity="0" />
+                                            </linearGradient>
+                                        </defs>
 
-                                <circle cx="350" cy="50" r="5" fill="#0D9488" stroke="currentColor" className="text-white dark:text-slate-900" strokeWidth="2" />
-                                <rect x="330" y="5" width="40" height="30" rx="4" fill="currentColor" className="text-slate-900 dark:text-teal-500" />
-                                <text x="350" y="25" textAnchor="middle" fill="currentColor" className="text-white dark:text-slate-900" fontSize="12" fontWeight="bold">{stats.totalPatients}</text>
-                            </svg>
+                                        {/* Active Point & Tooltip */}
+                                        <circle cx="350" cy="50" r="6" fill="#0D9488" stroke="white" strokeWidth="3" className="drop-shadow-sm" />
 
-                            <div className="flex justify-between mt-4 px-2 text-[10px] font-bold text-gray-400 dark:text-gray-500">
-                                {['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'].map(m => (
-                                    <span key={m}>{m}</span>
+                                        <g transform="translate(330, 5)">
+                                            <rect width="40" height="30" rx="8" fill="#1e293b" className="dark:fill-teal-600" />
+                                            <text x="20" y="20" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">{stats.totalPatients}</text>
+                                        </g>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {/* Months - Improved for Desktop/Mobile */}
+                            <div className="flex justify-between mt-2 px-1">
+                                {['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'].map((m, i) => (
+                                    <span key={m} className={`text-[10px] font-bold text-gray-400 dark:text-gray-500 ${i % 2 !== 0 ? 'hidden sm:block' : ''}`}>
+                                        {m}
+                                    </span>
                                 ))}
                             </div>
                         </div>

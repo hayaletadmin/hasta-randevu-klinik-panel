@@ -546,10 +546,10 @@ export default function AppointmentCalendar() {
 
             <div className="flex-1 min-w-0">
                 <Card className="border-none shadow-sm bg-white dark:bg-slate-900 h-full flex flex-col overflow-hidden">
-                    <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 px-6 py-4">
-                        <div className="flex items-center gap-4">
-                            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Randevu Takvimi</h2>
-                            <div className="px-3 py-1 bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 rounded-lg text-xs font-bold">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between border-b border-gray-100 dark:border-slate-800 px-4 md:px-6 py-3 md:py-4">
+                        <div className="flex items-center justify-between gap-3">
+                            <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Randevu Takvimi</h2>
+                            <div className="px-2.5 py-1 bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 rounded-lg text-[11px] font-bold">
                                 {view === 'day' && 'Günlük'}
                                 {view === '3days' && '3 Günlük'}
                                 {view === 'week' && 'Haftalık'}
@@ -557,8 +557,8 @@ export default function AppointmentCalendar() {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center bg-gray-50 dark:bg-slate-800 p-0.5 rounded-xl border border-gray-100 dark:border-slate-700/50 mr-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2 md:justify-end md:gap-3">
+                            <div className="flex items-center bg-gray-50 dark:bg-slate-800 p-0.5 rounded-xl border border-gray-100 dark:border-slate-700/50 mr-0 md:mr-2 overflow-x-auto md:overflow-visible -mx-1 px-1 md:mx-0 md:px-0">
                                 {[
                                     { id: 'day', label: '24 Saat' },
                                     { id: '3days', label: '3 Gün' },
@@ -568,7 +568,7 @@ export default function AppointmentCalendar() {
                                     <button
                                         key={v.id}
                                         onClick={() => setView(v.id)}
-                                        className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${view === v.id ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-teal-400 shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                                        className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${view === v.id ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-teal-400 shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
                                     >
                                         {v.label}
                                     </button>
