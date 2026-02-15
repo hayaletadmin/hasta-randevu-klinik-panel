@@ -271,7 +271,7 @@ function CreateAppointmentPageContent() {
                         .filter(app =>
                             app.doctor_id === formData.doctor &&
                             app.appointment_date === formData.date &&
-                            app.status !== 'İptal'
+                            !app.status.includes('İptal')
                         )
                         .reduce((acc: { [key: string]: number }, app) => {
                             const time = app.appointment_time.slice(0, 5);

@@ -5,14 +5,17 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { useState } from "react"
 import { validateTC } from "@/lib/validations"
-import { getPatientByIdentityNo, getAppointmentsByPatientId, type Appointment } from "@/lib/supabase"
-import { Loader2, Calendar, MapPin, User, Clock } from "lucide-react"
+import { getPatientByIdentityNo, getAppointmentsByPatientId, updateAppointment, type Appointment } from "@/lib/supabase"
+import { Loader2, Calendar, MapPin, User, Clock, X, AlertCircle } from "lucide-react"
 
 export function AppointmentInquiry() {
     const [tc, setTc] = useState("")
     const [loading, setLoading] = useState(false)
     const [appointments, setAppointments] = useState<Appointment[]>([])
     const [hasSearched, setHasSearched] = useState(false)
+    const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+    const [cancelTcInput, setCancelTcInput] = useState("");
+    const [isCancelling, setIsCancelling] = useState(false);
 
     const handleTcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value.replace(/\D/g, '').slice(0, 11);
@@ -39,6 +42,35 @@ export function AppointmentInquiry() {
             console.error("Sorgulama hatası:", error);
         } finally {
             setLoading(false);
+        }
+    }
+    const handleCancelClick = (app: Appointment) => {
+        setSelectedAppointment(app);
+        setCancelTcInput("");
+    }
+
+    const confirmCancellation = async () => {
+        if (!selectedAppointment) return;
+        if (cancelTcInput !== tc) {
+            alert("Girdiğiniz TC Kimlik Numarası hatalı.");
+            return;
+        }
+
+        setIsCancelling(true);
+        try {
+            await updateAppointment(selectedAppointment.id!, {
+                status: 'İptal (Hasta)',
+                cancelled_at: new Date().toISOString()
+            });
+            // Refresh appointments list
+            const apps = await getAppointmentsByPatientId(selectedAppointment.patient_id);
+            setAppointments(apps);
+            setSelectedAppointment(null);
+        } catch (error: any) {
+            console.error("İptal hatası detayı:", error);
+            alert(`Randevu iptal edilirken bir hata oluştu: ${error.message || 'Bilinmeyen hata'}`);
+        } finally {
+            setIsCancelling(false);
         }
     }
 
@@ -105,15 +137,32 @@ export function AppointmentInquiry() {
                                             </div>
                                         </div>
                                         <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${app.status === 'Tamamlandı' ? 'bg-gray-100 text-gray-900' :
-                                                app.status === 'İptal' ? 'bg-gray-50 text-gray-400 line-through' :
-                                                    'bg-teal-600 text-white'
-                                                }`}>
-                                                {app.status}
-                                            </span>
-                                            {app.status === 'Bekleniyor' && (
-                                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">İptal işlemi için kliniği arayınız.</span>
-                                            )}
+                                            <div className="flex items-center gap-2">
+                                                {app.status === 'Bekleniyor' && (
+                                                    <Button
+                                                        onClick={() => handleCancelClick(app)}
+                                                        variant="ghost"
+                                                        className="h-8 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all"
+                                                    >
+                                                        <X size={12} strokeWidth={3} />
+                                                        İptal Et
+                                                    </Button>
+                                                )}
+                                                {app.status.includes('İptal') && app.cancelled_at && (
+                                                    <span className="text-[9px] font-bold text-red-500 uppercase tracking-tighter">
+                                                        ({new Date(app.cancelled_at).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })} {new Date(app.cancelled_at).toLocaleTimeString('tr-TR', { timeZone: 'Europe/Istanbul', hour: '2-digit', minute: '2-digit' })}) İPTAL EDİLDİ
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div className="flex flex-col items-end gap-1">
+                                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${app.status === 'Tamamlandı' ? 'bg-gray-100 text-gray-900' :
+                                                    app.status.includes('İptal') ? 'bg-gray-50 text-gray-400 line-through' :
+                                                        'bg-teal-600 text-white'
+                                                    }`}>
+                                                    {app.status}
+                                                </span>
+                                            </div>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -132,6 +181,59 @@ export function AppointmentInquiry() {
                             </CardContent>
                         </Card>
                     )}
+                </div>
+            )}
+            {/* İptal Onay Modalı */}
+            {selectedAppointment && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <Card className="w-full max-w-sm border-none shadow-2xl animate-in zoom-in-95 duration-200">
+                        <CardContent className="p-6 space-y-6">
+                            <div className="flex items-center gap-3 text-red-600">
+                                <div className="p-2 bg-red-50 rounded-lg">
+                                    <AlertCircle size={24} />
+                                </div>
+                                <h3 className="text-lg font-black tracking-tight">Randevuyu İptal Et</h3>
+                            </div>
+
+                            <div className="space-y-4">
+                                <p className="text-sm text-gray-600 font-medium leading-relaxed">
+                                    Randevuyu iptal etmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                                </p>
+
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-medium text-gray-500">
+                                        Onaylamak için ' <strong>{tc}</strong> ' yazınız
+                                    </label>
+                                    <Input
+                                        value={cancelTcInput}
+                                        onChange={(e) => setCancelTcInput(e.target.value.slice(0, 20))}
+                                        placeholder="TC Kimlik No"
+                                        className="h-12 bg-gray-50 border-gray-200 focus:bg-white transition-all font-bold tracking-widest text-center"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <Button
+                                    onClick={() => setSelectedAppointment(null)}
+                                    variant="outline"
+                                    className="flex-1 h-12 border-gray-200 font-bold uppercase text-[10px] tracking-widest hover:bg-gray-50"
+                                >
+                                    Vazgeç
+                                </Button>
+                                <Button
+                                    onClick={confirmCancellation}
+                                    disabled={cancelTcInput !== tc || isCancelling}
+                                    className={`flex-1 h-12 font-black uppercase text-[10px] tracking-widest transition-all ${cancelTcInput === tc
+                                        ? "bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/20"
+                                        : "bg-red-100 text-red-300 cursor-not-allowed border-none shadow-none"
+                                        }`}
+                                >
+                                    {isCancelling ? <Loader2 className="w-5 h-5 animate-spin" /> : "İptal Et"}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
             )}
         </div>

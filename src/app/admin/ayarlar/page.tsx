@@ -596,6 +596,18 @@ export default function SettingsPage() {
                         <Calendar size={18} />
                         Çalışma Saatleri
                     </button>
+                    <button
+                        onClick={() => setActiveTab('appointment')}
+                        className={cn(
+                            "w-full flex items-center gap-3 px-5 py-3.5 text-sm font-bold rounded-lg transition-all duration-200",
+                            activeTab === 'appointment'
+                                ? "bg-teal-600 text-white shadow-lg shadow-teal-500/20"
+                                : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-slate-800"
+                        )}
+                    >
+                        <Clock size={18} />
+                        Randevu & Saat
+                    </button>
 
 
                 </div>
@@ -937,43 +949,62 @@ export default function SettingsPage() {
                                 </CardContent>
                             </Card>
 
-                            {/* Randevu Ayarları (Artık Çalışma Saatleri sekmesinde) */}
+                        </div>
+                    )}
+
+                    {activeTab === 'appointment' && (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            {/* Randevu Ayarları */}
                             <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden rounded-xl">
                                 <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 dark:border-gray-800/50 px-6 py-4">
-                                    <div>
-                                        <CardTitle className="text-base font-bold flex items-center gap-2">
-                                            Randevu Süresi
-                                        </CardTitle>
-                                        <CardDescription className="text-xs">
-                                            Takvimdeki her bir randevu diliminin uzunluğunu belirler.
-                                        </CardDescription>
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-2.5 bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 rounded-xl">
+                                            <Clock size={20} />
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-lg font-bold">Randevu Süresi</CardTitle>
+                                            <CardDescription className="text-xs font-medium text-gray-400">
+                                                Takvimdeki her bir randevu diliminin uzunluğunu belirler.
+                                            </CardDescription>
+                                        </div>
                                     </div>
                                     <Button
                                         onClick={handleSaveSettings}
                                         disabled={savingSettings}
-                                        className="bg-teal-600 hover:bg-teal-700 text-white h-9 px-4 rounded-lg text-xs font-bold shadow-sm gap-1.5"
+                                        className="bg-teal-600 hover:bg-teal-700 text-white h-10 px-6 rounded-xl font-bold shadow-lg shadow-teal-500/20 gap-2 transition-all active:scale-95"
                                     >
-                                        {savingSettings ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                                        Kaydet
+                                        {savingSettings ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                                        Değişiklikleri Kaydet
                                     </Button>
                                 </CardHeader>
-                                <CardContent className="p-5 pt-1">
-                                    <div className="max-w-xl">
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                            {['15', '30', '45', '60'].map(m => (
-                                                <button
-                                                    key={m}
-                                                    onClick={() => setAppointmentSettings(prev => ({ ...prev, duration: m }))}
-                                                    className={cn(
-                                                        "h-10 rounded-lg border text-sm font-bold transition-all",
-                                                        appointmentSettings.duration === m
-                                                            ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-500/20"
-                                                            : "bg-white dark:bg-slate-900 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800 hover:border-teal-300"
-                                                    )}
-                                                >
-                                                    {m} dk.
-                                                </button>
-                                            ))}
+                                <CardContent className="px-6 pt-3 pb-6">
+                                    <div className="w-full space-y-4">
+                                        <div className="flex items-center gap-3 p-3 bg-teal-50/50 dark:bg-teal-900/10 rounded-xl border border-teal-100/30 dark:border-teal-500/10 w-full">
+                                            <AlertTriangle size={14} className="text-teal-600 dark:text-teal-400 shrink-0" />
+                                            <p className="text-[11px] text-teal-800 dark:text-teal-300 font-semibold leading-normal w-full">
+                                                Randevu süresini değiştirmek, takvimdeki tüm boş slotların bu süreye göre yeniden hesaplanmasını sağlar. Mevcut randevularınızın saatleri değişmez ancak yeni randevu alırken bu sürelere dikkat etmeniz önerilir.
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <Label className="text-[10px] font-black text-gray-400 tracking-widest uppercase block pl-1">Süre Seçimi (Dakika)</Label>
+                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl">
+                                                {['15', '30', '45', '60'].map(m => (
+                                                    <button
+                                                        key={m}
+                                                        onClick={() => setAppointmentSettings(prev => ({ ...prev, duration: m }))}
+                                                        className={cn(
+                                                            "h-12 rounded-xl border-2 text-sm font-black transition-all duration-300 flex flex-col items-center justify-center",
+                                                            appointmentSettings.duration === m
+                                                                ? "bg-teal-600 text-white border-teal-600 shadow-lg shadow-teal-500/30 scale-[1.02]"
+                                                                : "bg-white dark:bg-slate-950 text-gray-500 dark:text-gray-400 border-gray-100 dark:border-slate-800 hover:border-teal-200 dark:hover:border-teal-900/50 hover:bg-gray-50 dark:hover:bg-slate-900"
+                                                        )}
+                                                    >
+                                                        <span className="text-base">{m}</span>
+                                                        <span className="text-[9px] uppercase tracking-tighter opacity-60">Dakika</span>
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -981,55 +1012,74 @@ export default function SettingsPage() {
 
                             {/* Saat & Gün Kapat Bölümü */}
                             <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden rounded-xl">
-                                <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 dark:border-gray-800 px-6 py-4">
-                                    <div>
-                                        <CardTitle className="text-base font-bold">Saat & Gün Kapat</CardTitle>
-                                        <CardDescription className="text-xs">Özel günlerde klinik veya doktor kapatmaları</CardDescription>
+                                <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 dark:border-gray-800/50 px-6 py-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-2 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-xl">
+                                            <CalendarX size={18} />
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-base font-bold">Saat & Gün Kapat</CardTitle>
+                                            <CardDescription className="text-[11px] font-medium text-gray-400">Klinik geneli veya doktor bazlı kapatmalar</CardDescription>
+                                        </div>
                                     </div>
-                                    <Button onClick={handleOpenClosureModal} className="bg-teal-600 hover:bg-teal-700 text-white h-9 px-4 rounded-lg text-xs font-bold shadow-sm">
-                                        <Plus size={14} className="mr-1" /> Yeni Kapatma
+                                    <Button
+                                        onClick={handleOpenClosureModal}
+                                        className="bg-rose-600 hover:bg-rose-700 text-white h-9 px-5 rounded-xl font-bold shadow-lg shadow-rose-500/20 gap-2 transition-all active:scale-95 text-xs"
+                                    >
+                                        <Plus size={16} />
+                                        Yeni Kapatma Ekle
                                     </Button>
                                 </CardHeader>
                                 <CardContent className="p-0">
                                     {closures.length === 0 ? (
-                                        <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                                            <CalendarX size={40} className="mx-auto mb-3 opacity-30" />
-                                            <p className="text-sm font-medium">Henüz kapatma eklenmedi</p>
-                                            <p className="text-xs mt-1">Özel günlerde klinik veya doktor kapatması ekleyebilirsiniz</p>
+                                        <div className="p-12 text-center text-gray-400 bg-gray-50/30 dark:bg-slate-900/30">
+                                            <div className="inline-flex p-3 rounded-full bg-gray-100/50 dark:bg-slate-800/50 mb-3">
+                                                <CalendarX size={40} className="opacity-20" />
+                                            </div>
+                                            <p className="text-xs font-bold text-gray-500 dark:text-gray-400">Henüz bir kapatma kaydı bulunmuyor</p>
                                         </div>
                                     ) : (
                                         <div className="divide-y divide-gray-100 dark:divide-slate-800">
                                             {closures.map(closure => (
-                                                <div key={closure.id} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`p-2 rounded-lg ${closure.target_type === 'clinic' ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'}`}>
-                                                            {closure.target_type === 'clinic' ? <Building2 size={16} /> : <Stethoscope size={16} />}
+                                                <div key={closure.id} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-all group">
+                                                    <div className="flex items-center gap-5">
+                                                        <div className={`h-12 w-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${closure.target_type === 'clinic' ? 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'}`}>
+                                                            {closure.target_type === 'clinic' ? <Building2 size={24} /> : <Stethoscope size={24} />}
                                                         </div>
-                                                        <div>
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-sm font-bold text-gray-900 dark:text-white">
+                                                        <div className="space-y-1">
+                                                            <div className="flex items-center gap-3">
+                                                                <span className="text-base font-bold text-gray-900 dark:text-white">
                                                                     {new Date(closure.closure_date).toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                                                                 </span>
-                                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${closure.target_type === 'clinic' ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}`}>
-                                                                    {closure.target_type === 'clinic' ? 'KLİNİK' : closure.doctors?.full_name || 'Doktor'}
+                                                                <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider ${closure.target_type === 'clinic' ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'}`}>
+                                                                    {closure.target_type === 'clinic' ? 'KLİNİK GENELİ' : closure.doctors?.full_name || 'DOKTOR ÖZEL'}
                                                                 </span>
                                                             </div>
-                                                            <div className="flex items-center gap-2 mt-1">
-                                                                {closure.start_time && closure.end_time ? (
-                                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                                        Saat: {closure.start_time.slice(0, 5)} - {closure.end_time.slice(0, 5)}
-                                                                    </span>
-                                                                ) : (
-                                                                    <span className="text-xs text-red-500 font-medium">Tüm Gün Kapalı</span>
-                                                                )}
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 font-bold text-xs">
+                                                                    <Clock size={14} className="opacity-50" />
+                                                                    {closure.start_time && closure.end_time ? (
+                                                                        <span>{closure.start_time.slice(0, 5)} — {closure.end_time.slice(0, 5)}</span>
+                                                                    ) : (
+                                                                        <span className="text-rose-600 dark:text-rose-400">Tüm Gün Kapalı</span>
+                                                                    )}
+                                                                </div>
                                                                 {closure.reason && (
-                                                                    <span className="text-xs text-gray-400">• {closure.reason}</span>
+                                                                    <>
+                                                                        <span className="text-gray-200 dark:text-slate-800">|</span>
+                                                                        <span className="text-xs text-gray-400 font-medium">Açıklama: {closure.reason}</span>
+                                                                    </>
                                                                 )}
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <Button size="icon" variant="ghost" onClick={() => handleDeleteClosure(closure.id)} className="h-8 w-8 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
-                                                        <Trash2 size={14} />
+                                                    <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        onClick={() => handleDeleteClosure(closure.id)}
+                                                        className="h-10 w-10 text-gray-300 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all"
+                                                    >
+                                                        <Trash2 size={18} />
                                                     </Button>
                                                 </div>
                                             ))}

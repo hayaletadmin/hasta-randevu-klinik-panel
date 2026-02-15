@@ -16,7 +16,23 @@ export const supabase = createClient(
     supabaseAnonKey || 'placeholder-key'
 );
 
+export const DEFAULT_CLINIC_SLUG = 'demo-klinik';
+
 // Types
+export type Clinic = {
+    id: string;
+    name: string;
+    slug: string;
+    domain?: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    logo_url?: string;
+    description?: string;
+    website?: string;
+    created_at?: string;
+};
+
 export type Patient = {
     id: string;
     created_at?: string;
@@ -33,6 +49,7 @@ export type Patient = {
     is_active?: boolean;
     doctors?: Doctor; // Joined info
     patient_groups?: PatientGroup; // Joined info
+    clinic_id?: string;
 };
 
 export type PatientGroup = {
@@ -41,6 +58,7 @@ export type PatientGroup = {
     name: string;
     description?: string;
     is_active?: boolean;
+    clinic_id?: string;
 };
 
 export type Doctor = {
@@ -56,6 +74,7 @@ export type Doctor = {
     // For joined queries
     departments?: Department;
     work_hours?: WorkHour[];
+    clinic_id?: string;
 };
 
 export interface WorkHour {
@@ -80,6 +99,7 @@ export interface Closure {
     is_active?: boolean;
     // Join için
     doctors?: { full_name: string };
+    clinic_id?: string;
 }
 
 export type Department = {
@@ -87,6 +107,7 @@ export type Department = {
     created_at?: string;
     name: string;
     is_active?: boolean;
+    clinic_id?: string;
 };
 
 export type Procedure = {
@@ -97,6 +118,7 @@ export type Procedure = {
     price?: number;
     duration_minutes?: number;
     is_active?: boolean;
+    clinic_id?: string;
 };
 
 export type Appointment = {
@@ -112,11 +134,13 @@ export type Appointment = {
     priority: 'normal' | 'acil' | 'vip' | 'engelli';
     notes?: string;
     recorded_by?: string;
+    cancelled_at?: string;
     // Joined fields for display
     patients?: Patient;
     doctors?: Doctor;
     departments?: Department;
     procedures?: Procedure;
+    clinic_id?: string;
 };
 
 export type AppNotification = {
@@ -127,15 +151,38 @@ export type AppNotification = {
     is_read: boolean;
     related_id?: string;
     type?: string;
+    clinic_id?: string;
 };
 
 // Data Fetching Functions
 
-export const getDepartments = async (): Promise<Department[]> => {
+export const getClinicBySlug = async (slug: string): Promise<Clinic | null> => {
+    const { data, error } = await supabase
+        .from('clinics')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+
+    if (error) {
+        console.error('Error fetching clinic:', error);
+        return null;
+    }
+    return data;
+};
+
+export const getDepartments = async (clinicId?: string): Promise<Department[]> => {
+    let effectiveClinicId = clinicId;
+    if (!effectiveClinicId) {
+        const clinic = await getClinicBySlug(DEFAULT_CLINIC_SLUG);
+        effectiveClinicId = clinic?.id;
+    }
+    if (!effectiveClinicId) return [];
+
     const { data, error } = await supabase
         .from('departments')
         .select('*')
         .eq('is_active', true)
+        .eq('clinic_id', effectiveClinicId)
         .order('name');
 
     if (error) {
@@ -145,11 +192,19 @@ export const getDepartments = async (): Promise<Department[]> => {
     return data || [];
 };
 
-export const getDoctors = async (): Promise<Doctor[]> => {
+export const getDoctors = async (clinicId?: string): Promise<Doctor[]> => {
+    let effectiveClinicId = clinicId;
+    if (!effectiveClinicId) {
+        const clinic = await getClinicBySlug(DEFAULT_CLINIC_SLUG);
+        effectiveClinicId = clinic?.id;
+    }
+    if (!effectiveClinicId) return [];
+
     const { data, error } = await supabase
         .from('doctors')
         .select('*, departments(name)')
         .eq('is_active', true)
+        .eq('clinic_id', effectiveClinicId)
         .order('full_name');
 
     if (error) {
@@ -159,11 +214,19 @@ export const getDoctors = async (): Promise<Doctor[]> => {
     return data || [];
 };
 
-export const getProcedures = async (): Promise<Procedure[]> => {
+export const getProcedures = async (clinicId?: string): Promise<Procedure[]> => {
+    let effectiveClinicId = clinicId;
+    if (!effectiveClinicId) {
+        const clinic = await getClinicBySlug(DEFAULT_CLINIC_SLUG);
+        effectiveClinicId = clinic?.id;
+    }
+    if (!effectiveClinicId) return [];
+
     const { data, error } = await supabase
         .from('procedures')
         .select('*')
         .eq('is_active', true)
+        .eq('clinic_id', effectiveClinicId)
         .order('name');
 
     if (error) {
@@ -173,8 +236,15 @@ export const getProcedures = async (): Promise<Procedure[]> => {
     return data || [];
 };
 
-export const getPatients = async (searchTerm?: string): Promise<Patient[]> => {
-    let query = supabase.from('patients').select('*, doctors(full_name), patient_groups(name)').eq('is_active', true).order('created_at', { ascending: false });
+export const getPatients = async (clinicId?: string, searchTerm?: string): Promise<Patient[]> => {
+    let effectiveClinicId = clinicId;
+    if (!effectiveClinicId) {
+        const clinic = await getClinicBySlug(DEFAULT_CLINIC_SLUG);
+        effectiveClinicId = clinic?.id;
+    }
+    if (!effectiveClinicId) return [];
+
+    let query = supabase.from('patients').select('*, doctors(full_name), patient_groups(name)').eq('is_active', true).eq('clinic_id', effectiveClinicId).order('created_at', { ascending: false });
 
     if (searchTerm) {
         query = query.or(`full_name.ilike.%${searchTerm}%,identity_no.ilike.%${searchTerm}%`);
@@ -248,14 +318,25 @@ export const createPatient = async (patientData: Omit<Patient, 'id'>): Promise<P
     return data;
 };
 
-export const createAppointment = async (appointmentData: Omit<Appointment, 'id'>): Promise<any> => {
+export const createAppointment = async (appointmentData: Omit<Appointment, 'id'>, clinicId?: string): Promise<any> => {
+    let effectiveClinicId = clinicId;
+    if (!effectiveClinicId) {
+        const clinic = await getClinicBySlug(DEFAULT_CLINIC_SLUG);
+        effectiveClinicId = clinic?.id;
+    }
+    if (!effectiveClinicId) throw new Error('Clinic ID required');
+
+    // Inject clinic_id
+    const dataToInsert = { ...appointmentData, clinic_id: effectiveClinicId };
+
     // 1. Check for Closures (Klinik veya Doktor kapalı mı?)
     if (appointmentData.appointment_date) {
         const { data: closures } = await supabase
             .from('closures')
             .select('*')
             .eq('closure_date', appointmentData.appointment_date)
-            .eq('is_active', true);
+            .eq('is_active', true)
+            .eq('clinic_id', effectiveClinicId);
 
         if (closures && closures.length > 0) {
             for (const closure of closures) {
@@ -287,7 +368,7 @@ export const createAppointment = async (appointmentData: Omit<Appointment, 'id'>
             .eq('doctor_id', appointmentData.doctor_id)
             .eq('appointment_date', appointmentData.appointment_date)
             .eq('appointment_time', appointmentData.appointment_time)
-            .neq('status', 'İptal') // Ignore cancelled appointments
+            .not('status', 'ilike', '%İptal%') // Ignore cancelled appointments
             .single();
 
         if (existingApp) {
@@ -297,7 +378,7 @@ export const createAppointment = async (appointmentData: Omit<Appointment, 'id'>
 
     const { data, error } = await supabase
         .from('appointments')
-        .insert([appointmentData])
+        .insert([dataToInsert])
         .select()
         .single();
 
@@ -320,8 +401,9 @@ export const createAppointment = async (appointmentData: Omit<Appointment, 'id'>
                 message,
                 link: '/admin/randevular/liste',
                 related_id: data.id,
-                type: 'appointment'
-            });
+                type: 'appointment',
+                clinic_id: effectiveClinicId
+            }, effectiveClinicId);
         }
     } catch (notifyError) {
         console.error('Notification creation failed:', notifyError);
@@ -332,7 +414,14 @@ export const createAppointment = async (appointmentData: Omit<Appointment, 'id'>
 };
 
 // New functions for List Page
-export const getAppointments = async (): Promise<Appointment[]> => {
+export const getAppointments = async (clinicId?: string): Promise<Appointment[]> => {
+    let effectiveClinicId = clinicId;
+    if (!effectiveClinicId) {
+        const clinic = await getClinicBySlug(DEFAULT_CLINIC_SLUG);
+        effectiveClinicId = clinic?.id;
+    }
+    if (!effectiveClinicId) return [];
+
     const { data, error } = await supabase
         .from('appointments')
         .select(`
@@ -499,11 +588,19 @@ export const deleteDoctor = async (id: string): Promise<boolean> => {
 };
 
 // CRUD Operations for Patient Groups
-export const getPatientGroups = async (): Promise<PatientGroup[]> => {
+export const getPatientGroups = async (clinicId?: string): Promise<PatientGroup[]> => {
+    let effectiveClinicId = clinicId;
+    if (!effectiveClinicId) {
+        const clinic = await getClinicBySlug(DEFAULT_CLINIC_SLUG);
+        effectiveClinicId = clinic?.id;
+    }
+    if (!effectiveClinicId) return [];
+
     const { data, error } = await supabase
         .from('patient_groups')
         .select('*')
         .eq('is_active', true)
+        .eq('clinic_id', effectiveClinicId)
         .order('name');
 
     if (error) {
@@ -564,10 +661,18 @@ export type ClinicSetting = {
     value: string;
 };
 
-export const getClinicSettings = async (): Promise<ClinicSetting[]> => {
+export const getClinicSettings = async (clinicId?: string): Promise<ClinicSetting[]> => {
+    let effectiveClinicId = clinicId;
+    if (!effectiveClinicId) {
+        const clinic = await getClinicBySlug(DEFAULT_CLINIC_SLUG);
+        effectiveClinicId = clinic?.id;
+    }
+    if (!effectiveClinicId) return [];
+
     const { data, error } = await supabase
         .from('clinic_settings')
-        .select('key, value');
+        .select('key, value')
+        .eq('clinic_id', effectiveClinicId);
 
     if (error) {
         console.error('Error fetching clinic settings:', error);
@@ -576,11 +681,18 @@ export const getClinicSettings = async (): Promise<ClinicSetting[]> => {
     return data || [];
 };
 
-export const updateClinicSetting = async (key: string, value: string) => {
+export const updateClinicSetting = async (key: string, value: string, clinicId?: string) => {
+    let effectiveClinicId = clinicId;
+    if (!effectiveClinicId) {
+        const clinic = await getClinicBySlug(DEFAULT_CLINIC_SLUG);
+        effectiveClinicId = clinic?.id;
+    }
+    if (!effectiveClinicId) throw new Error('Clinic ID required');
+
     try {
         const { data, error } = await supabase
             .from('clinic_settings')
-            .upsert({ key, value }, { onConflict: 'key' });
+            .upsert({ clinic_id: effectiveClinicId, key, value }, { onConflict: 'clinic_id,key' });
 
         if (error) {
             console.error(`Supabase upsert error for ${key}:`, error);
@@ -594,7 +706,14 @@ export const updateClinicSetting = async (key: string, value: string) => {
 };
 
 // Closure (Kapatma) CRUD Operations
-export const getClosures = async (): Promise<Closure[]> => {
+export const getClosures = async (clinicId?: string): Promise<Closure[]> => {
+    let effectiveClinicId = clinicId;
+    if (!effectiveClinicId) {
+        const clinic = await getClinicBySlug(DEFAULT_CLINIC_SLUG);
+        effectiveClinicId = clinic?.id;
+    }
+    if (!effectiveClinicId) return [];
+
     const { data, error } = await supabase
         .from('closures')
         .select(`
@@ -604,6 +723,7 @@ export const getClosures = async (): Promise<Closure[]> => {
             )
         `)
         .eq('is_active', true)
+        .eq('clinic_id', effectiveClinicId)
         .order('closure_date', { ascending: true });
 
     if (error) {
@@ -654,13 +774,21 @@ export type PatientDocument = {
     file_type: 'anamnez' | 'onam' | 'ekbilgiler';
     content_type: string;
     file_size: number;
+    clinic_id?: string;
 };
 
 export const uploadPatientDocument = async (
     file: File,
     patientId: string,
-    fileType: 'anamnez' | 'onam' | 'ekbilgiler'
+    fileType: 'anamnez' | 'onam' | 'ekbilgiler',
+    clinicId?: string
 ) => {
+    let effectiveClinicId = clinicId;
+    if (!effectiveClinicId) {
+        const clinic = await getClinicBySlug(DEFAULT_CLINIC_SLUG);
+        effectiveClinicId = clinic?.id;
+    }
+    if (!effectiveClinicId) throw new Error("Clinic ID required");
     // 1. Dosyayı Storage'a yükle
     const fileExt = file.name.split('.').pop();
     const fileName = `${patientId}/${fileType}_${Date.now()}.${fileExt}`;
@@ -684,7 +812,8 @@ export const uploadPatientDocument = async (
             file_name: file.name,
             file_type: fileType,
             content_type: file.type,
-            file_size: file.size
+            file_size: file.size,
+            clinic_id: effectiveClinicId
         }])
         .select()
         .single();
@@ -756,10 +885,18 @@ export const getDocumentUrl = (filePath: string) => {
 };
 
 // Notification System
-export const getNotifications = async (): Promise<AppNotification[]> => {
+export const getNotifications = async (clinicId?: string): Promise<AppNotification[]> => {
+    let effectiveClinicId = clinicId;
+    if (!effectiveClinicId) {
+        const clinic = await getClinicBySlug(DEFAULT_CLINIC_SLUG);
+        effectiveClinicId = clinic?.id;
+    }
+    if (!effectiveClinicId) return [];
+
     const { data, error } = await supabase
         .from('notifications')
         .select('*')
+        .eq('clinic_id', effectiveClinicId)
         .order('created_at', { ascending: false })
         .limit(20); // Last 20 notifications
 
@@ -770,11 +907,19 @@ export const getNotifications = async (): Promise<AppNotification[]> => {
     return data || [];
 };
 
-export const getUnreadNotificationCount = async (): Promise<number> => {
+export const getUnreadNotificationCount = async (clinicId?: string): Promise<number> => {
+    let effectiveClinicId = clinicId;
+    if (!effectiveClinicId) {
+        const clinic = await getClinicBySlug(DEFAULT_CLINIC_SLUG);
+        effectiveClinicId = clinic?.id;
+    }
+    if (!effectiveClinicId) return 0;
+
     const { count, error } = await supabase
         .from('notifications')
         .select('*', { count: 'exact', head: true })
-        .eq('is_read', false);
+        .eq('is_read', false)
+        .eq('clinic_id', effectiveClinicId);
 
     if (error) {
         console.error('Error fetching notification count:', error);
@@ -783,10 +928,12 @@ export const getUnreadNotificationCount = async (): Promise<number> => {
     return count || 0;
 };
 
-export const createNotification = async (notification: Omit<AppNotification, 'id' | 'created_at' | 'is_read'>) => {
+export const createNotification = async (notification: Omit<AppNotification, 'id' | 'created_at' | 'is_read'>, clinicId?: string) => {
+    // inject clinicId if not present (though it should be passed)
+    const notificationWithClinic = clinicId ? { ...notification, clinic_id: clinicId } : notification;
     const { data, error } = await supabase
         .from('notifications')
-        .insert([notification])
+        .insert([notificationWithClinic])
         .select()
         .single();
 

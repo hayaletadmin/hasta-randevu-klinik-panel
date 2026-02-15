@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS appointments (
     status TEXT DEFAULT 'Bekleniyor', -- 'Bekleniyor', 'Tamamlandı', 'İptal', 'Gelmedi'
     priority TEXT DEFAULT 'normal', -- 'normal', 'acil', 'vip', 'engelli'
     notes TEXT,
+    cancelled_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

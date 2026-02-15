@@ -11,15 +11,16 @@ interface StepDepartmentsProps {
     onNext: () => void;
     onBack: () => void;
     selectedDepartmentId?: string;
+    clinicId?: string;
 }
 
-export function StepDepartments({ onSelect, onNext, onBack, selectedDepartmentId }: StepDepartmentsProps) {
+export function StepDepartments({ onSelect, onNext, onBack, selectedDepartmentId, clinicId }: StepDepartmentsProps) {
     const [departments, setDepartments] = useState<Department[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const fetchDeps = async () => {
-            const data = await getDepartments()
+            const data = await getDepartments(clinicId)
             setDepartments(data)
             setLoading(false)
         }

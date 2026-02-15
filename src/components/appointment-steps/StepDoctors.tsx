@@ -13,16 +13,17 @@ interface StepDoctorsProps {
     selectedDoctorId?: string;
     departmentId: string;
     departmentName: string;
+    clinicId?: string;
 }
 
-export function StepDoctors({ onSelect, onNext, onBack, selectedDoctorId, departmentId, departmentName }: StepDoctorsProps) {
+export function StepDoctors({ onSelect, onNext, onBack, selectedDoctorId, departmentId, departmentName, clinicId }: StepDoctorsProps) {
     const [doctors, setDoctors] = useState<Doctor[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const fetchDocs = async () => {
             if (!departmentId) return;
-            const data = await getDoctors()
+            const data = await getDoctors(clinicId)
             // Filter doctors by selected department id
             setDoctors(data.filter(d => d.department_id === departmentId))
             setLoading(false)

@@ -11,6 +11,7 @@ interface StepDateTimeProps {
     onBack: () => void;
     selectedDate?: string;
     selectedTime?: string;
+    clinicId?: string;
 }
 
 const DEFAULT_WORK_HOURS: WorkHour[] = [
@@ -23,7 +24,7 @@ const DEFAULT_WORK_HOURS: WorkHour[] = [
     { day: 0, start: '09:00', end: '18:00', isOpen: false, hasLunchBreak: true, lunchStart: '12:00', lunchEnd: '13:30' },
 ];
 
-export function StepDateTime({ doctorId, onSelect, onBack, selectedDate, selectedTime }: StepDateTimeProps) {
+export function StepDateTime({ doctorId, onSelect, onBack, selectedDate, selectedTime, clinicId }: StepDateTimeProps) {
     const [localDate, setLocalDate] = useState(selectedDate ? selectedDate.split('.').reverse().join('-') : new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' }));
     const [localTime, setLocalTime] = useState(selectedTime || "");
     const [loading, setLoading] = useState(true);
@@ -80,9 +81,9 @@ export function StepDateTime({ doctorId, onSelect, onBack, selectedDate, selecte
             setLoading(true);
             try {
                 const [settingsData, closuresData, appsData] = await Promise.all([
-                    getClinicSettings(),
-                    getClosures(),
-                    getAppointments()
+                    getClinicSettings(clinicId),
+                    getClosures(clinicId),
+                    getAppointments(clinicId)
                 ]);
 
                 const durationSet = settingsData.find(s => s.key === 'appointment_duration')?.value;
@@ -94,7 +95,7 @@ export function StepDateTime({ doctorId, onSelect, onBack, selectedDate, selecte
                 setClosures(closuresData);
 
                 const doctorBookings = appsData
-                    .filter(app => app.doctor_id === doctorId && app.appointment_date === localDate && app.status !== 'İptal')
+                    .filter(app => app.doctor_id === doctorId && app.appointment_date === localDate && !app.status.includes('İptal'))
                     .map(app => app.appointment_time.slice(0, 5));
                 setBookedSlots(doctorBookings);
 

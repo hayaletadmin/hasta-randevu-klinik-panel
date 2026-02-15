@@ -378,7 +378,8 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
             case 'Tamamlandı': return 'bg-emerald-500';
             case 'Bekleniyor': return 'bg-amber-500';
             case 'Gelmedi': return 'bg-rose-500';
-            case 'İptal': return 'bg-slate-500';
+            case 'İptal':
+            case 'İptal (Hasta)': return 'bg-slate-500';
             default: return 'bg-gray-500';
         }
     };
@@ -392,6 +393,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
             case 'Gelmedi':
                 return 'bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border-rose-200 dark:border-rose-500/20';
             case 'İptal':
+            case 'İptal (Hasta)':
                 return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700';
             default:
                 return 'bg-gray-100 text-gray-700';
@@ -950,7 +952,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                                         <DropdownMenuTrigger asChild>
                                                             <button
                                                                 className={`
-                                                                    w-full px-2.5 py-1.5 rounded-lg text-[11px] font-bold border cursor-pointer select-none transition-all active:scale-95 flex items-center justify-between gap-2 outline-none
+                                                                    w-full px-2.5 py-1.5 rounded-lg text-[11px] font-bold border cursor-pointer select-none transition-all active:scale-95 flex items-center justify-between gap-2 outline-none whitespace-nowrap
                                                                     ${getStatusStyle(app.status)}
                                                                 `}
                                                             >
@@ -959,9 +961,10 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                                             </button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="start" className="w-[120px]">
-                                                            {['Bekleniyor', 'Gelmedi', 'İptal', 'Tamamlandı'].map((status) => (
+                                                            {['Bekleniyor', 'Gelmedi', 'Tamamlandı'].map((status) => (
                                                                 <DropdownMenuItem
                                                                     key={status}
+                                                                    disabled={app.status === 'İptal (Hasta)'}
                                                                     onClick={() => updateStatus(app.id!, status)}
                                                                     className="text-xs font-bold gap-2 cursor-pointer"
                                                                 >
@@ -975,7 +978,12 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                                 <td className="p-4 text-right">
                                                     <DropdownMenu modal={false}>
                                                         <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors rounded-lg">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                disabled={app.status === 'İptal (Hasta)'}
+                                                                className={`h-8 w-8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors rounded-lg ${app.status === 'İptal (Hasta)' ? 'opacity-20' : ''}`}
+                                                            >
                                                                 <MoreVertical size={16} />
                                                             </Button>
                                                         </DropdownMenuTrigger>
@@ -1421,8 +1429,9 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                         <select
                                             id="department_id"
                                             value={editFormData?.department_id || ''}
+                                            disabled={editFormData?.status === 'İptal (Hasta)'}
                                             onChange={(e) => setEditFormData((prev: any) => ({ ...prev, department_id: e.target.value, doctor_id: '' }))}
-                                            className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none"
+                                            className={`w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none ${editFormData?.status === 'İptal (Hasta)' ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         >
                                             <option value="">Seçiniz</option>
                                             {departments.map(dept => (
@@ -1435,8 +1444,9 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                         <select
                                             id="doctor_id"
                                             value={editFormData?.doctor_id || ''}
+                                            disabled={editFormData?.status === 'İptal (Hasta)'}
                                             onChange={(e) => setEditFormData((prev: any) => ({ ...prev, doctor_id: e.target.value }))}
-                                            className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none"
+                                            className={`w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none ${editFormData?.status === 'İptal (Hasta)' ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         >
                                             <option value="">Seçiniz</option>
                                             {doctors
@@ -1451,9 +1461,10 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                         <input
                                             id="process"
                                             value={editFormData?.process || ''}
+                                            disabled={editFormData?.status === 'İptal (Hasta)'}
                                             onChange={handleEditFormChange}
                                             maxLength={50}
-                                            className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none"
+                                            className={`w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none ${editFormData?.status === 'İptal (Hasta)' ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         />
                                     </div>
                                     <div className="space-y-1.5">
@@ -1476,8 +1487,9 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                             type="date"
                                             id="date"
                                             value={editFormData?.date || ''}
+                                            disabled={editFormData?.status === 'İptal (Hasta)'}
                                             onChange={handleEditFormChange}
-                                            className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none dark:scheme-dark"
+                                            className={`w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none dark:scheme-dark ${editFormData?.status === 'İptal (Hasta)' ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         />
                                     </div>
                                     <div className="space-y-1.5">
@@ -1485,8 +1497,9 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                         <select
                                             id="time"
                                             value={editFormData?.time || ''}
+                                            disabled={editFormData?.status === 'İptal (Hasta)'}
                                             onChange={handleEditFormChange}
-                                            className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none dark:scheme-dark"
+                                            className={`w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none dark:scheme-dark ${editFormData?.status === 'İptal (Hasta)' ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         >
                                             <option value="">Seçiniz</option>
                                             {generateTimeSlots().map(slot => (
@@ -1499,13 +1512,13 @@ export default function EditPatientPage({ params }: { params: Promise<{ id: stri
                                         <select
                                             id="status"
                                             value={editFormData?.status || 'Bekleniyor'}
+                                            disabled={editFormData?.status === 'İptal (Hasta)'}
                                             onChange={handleEditFormChange}
-                                            className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none"
+                                            className={`w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none whitespace-nowrap ${editFormData?.status === 'İptal (Hasta)' ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         >
                                             <option value="Bekleniyor">Bekleniyor</option>
-                                            <option value="Tamamlandı">Tamamlandı</option>
                                             <option value="Gelmedi">Gelmedi</option>
-                                            <option value="İptal">İptal</option>
+                                            <option value="Tamamlandı">Tamamlandı</option>
                                         </select>
                                     </div>
                                 </div>

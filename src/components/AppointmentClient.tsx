@@ -34,9 +34,10 @@ interface AppointmentClientProps {
         description: string;
         address: string;
     };
+    clinicId?: string;
 }
 
-export default function AppointmentClient({ clinicInfo }: AppointmentClientProps) {
+export default function AppointmentClient({ clinicInfo, clinicId }: AppointmentClientProps) {
     const [activeTab, setActiveTab] = useState("new")
     const [currentStep, setCurrentStep] = useState(1)
     const [isSuccess, setIsSuccess] = useState(false)
@@ -120,7 +121,7 @@ export default function AppointmentClient({ clinicInfo }: AppointmentClientProps
                 status: 'Bekleniyor',
                 priority: 'normal',
                 recorded_by: 'Kullanıcı'
-            });
+            }, clinicId);
 
             setIsSuccess(true);
         } catch (error: any) {
@@ -344,6 +345,7 @@ export default function AppointmentClient({ clinicInfo }: AppointmentClientProps
                                             onNext={() => setCurrentStep(3)}
                                             onBack={() => setCurrentStep(1)}
                                             selectedDepartmentId={formData.departmentId}
+                                            clinicId={clinicId}
                                         />
                                     )}
                                     {currentStep === 3 && (
@@ -354,6 +356,7 @@ export default function AppointmentClient({ clinicInfo }: AppointmentClientProps
                                             onNext={() => setCurrentStep(4)}
                                             onBack={() => setCurrentStep(2)}
                                             selectedDoctorId={formData.doctorId}
+                                            clinicId={clinicId}
                                         />
                                     )}
                                     {currentStep === 4 && (
@@ -366,6 +369,7 @@ export default function AppointmentClient({ clinicInfo }: AppointmentClientProps
                                             onBack={() => setCurrentStep(3)}
                                             selectedDate={formData.dateTime.date}
                                             selectedTime={formData.dateTime.time}
+                                            clinicId={clinicId}
                                         />
                                     )}
                                     {currentStep === 5 && (

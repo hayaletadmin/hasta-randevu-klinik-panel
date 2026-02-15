@@ -314,6 +314,7 @@ function AppointmentListPageContent() {
                     department_id: app.department_id,
                     doctor_id: app.doctor_id,
                     created_at: app.created_at,
+                    cancelled_at: app.cancelled_at,
                     recorded_by: app.recorded_by
                 };
             });
@@ -428,9 +429,9 @@ function AppointmentListPageContent() {
         }
     };
 
-    const updateStatus = async (id: number, newStatus: string) => {
+    const updateStatus = async (id: string, newStatus: string) => {
         try {
-            await updateAppointment(String(id), { status: newStatus });
+            await updateAppointment(id, { status: newStatus });
             await fetchAppointments();
         } catch (e) {
             console.error(e);
@@ -446,6 +447,7 @@ function AppointmentListPageContent() {
             case 'Gelmedi':
                 return 'bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border-rose-200 dark:border-rose-500/20';
             case 'İptal':
+            case 'İptal (Hasta)':
                 return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700';
             default:
                 return 'bg-gray-100 text-gray-700';
@@ -458,7 +460,8 @@ function AppointmentListPageContent() {
             case 'Tamamlandı': return 'bg-emerald-500';
             case 'Bekleniyor': return 'bg-amber-500';
             case 'Gelmedi': return 'bg-rose-500';
-            case 'İptal': return 'bg-slate-500';
+            case 'İptal':
+            case 'İptal (Hasta)': return 'bg-slate-500';
             default: return 'bg-gray-500';
         }
     };
@@ -838,7 +841,7 @@ function AppointmentListPageContent() {
                                                 <DropdownMenuTrigger asChild>
                                                     <button
                                                         className={`
-                                                            w-full px-2.5 py-1.5 rounded-lg text-xs font-bold border cursor-pointer select-none transition-all active:scale-95 flex items-center justify-between gap-2 outline-none
+                                                            w-full px-2.5 py-1.5 rounded-lg text-xs font-bold border cursor-pointer select-none transition-all active:scale-95 flex items-center justify-between gap-2 outline-none whitespace-nowrap
                                                             ${getStatusStyle(app.status)}
                                                         `}
                                                     >
@@ -847,9 +850,10 @@ function AppointmentListPageContent() {
                                                     </button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="start" className="w-[120px]">
-                                                    {['Bekleniyor', 'Gelmedi', 'İptal', 'Tamamlandı'].map((status) => (
+                                                    {['Bekleniyor', 'Gelmedi', 'Tamamlandı'].map((status) => (
                                                         <DropdownMenuItem
                                                             key={status}
+                                                            disabled={app.status === 'İptal (Hasta)'}
                                                             onClick={() => updateStatus(app.id, status)}
                                                             className="text-xs font-bold gap-2 cursor-pointer"
                                                         >
@@ -863,9 +867,12 @@ function AppointmentListPageContent() {
                                         <td className="p-4 text-center">
                                             <DropdownMenu modal={false}>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors rounded-lg">
+                                                    <button
+                                                        disabled={app.status === 'İptal (Hasta)'}
+                                                        className={`w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors rounded-lg ${app.status === 'İptal (Hasta)' ? 'opacity-20 cursor-not-allowed' : 'hover:bg-gray-50 dark:hover:bg-slate-800'}`}
+                                                    >
                                                         <MoreVertical size={16} />
-                                                    </Button>
+                                                    </button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => handleEditClick(app)} className="cursor-pointer font-bold text-xs">
@@ -1099,8 +1106,9 @@ function AppointmentListPageContent() {
                                         <select
                                             id="department_id"
                                             value={editFormData?.department_id || ''}
-                                            onChange={(e) => setEditFormData((prev: any) => ({ ...prev, department_id: e.target.value, doctor_id: '' }))}
-                                            className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none"
+                                            disabled={editFormData?.status === 'İptal (Hasta)'}
+                                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setEditFormData((prev: any) => ({ ...prev, department_id: e.target.value, doctor_id: '' }))}
+                                            className={`w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none ${editFormData?.status === 'İptal (Hasta)' ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         >
                                             <option value="">Seçiniz</option>
                                             {departments.map(dept => (
@@ -1113,8 +1121,9 @@ function AppointmentListPageContent() {
                                         <select
                                             id="doctor_id"
                                             value={editFormData?.doctor_id || ''}
-                                            onChange={(e) => setEditFormData((prev: any) => ({ ...prev, doctor_id: e.target.value }))}
-                                            className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none"
+                                            disabled={editFormData?.status === 'İptal (Hasta)'}
+                                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setEditFormData((prev: any) => ({ ...prev, doctor_id: e.target.value }))}
+                                            className={`w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none ${editFormData?.status === 'İptal (Hasta)' ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         >
                                             <option value="">Seçiniz</option>
                                             {doctors
@@ -1129,9 +1138,10 @@ function AppointmentListPageContent() {
                                         <input
                                             id="process"
                                             value={editFormData?.process || ''}
+                                            disabled={editFormData?.status === 'İptal (Hasta)'}
                                             onChange={handleEditFormChange}
                                             maxLength={50}
-                                            className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none"
+                                            className={`w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none ${editFormData?.status === 'İptal (Hasta)' ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         />
                                     </div>
                                     <div className="space-y-1.5">
@@ -1139,8 +1149,9 @@ function AppointmentListPageContent() {
                                         <select
                                             id="priority"
                                             value={editFormData?.priority || 'normal'}
+                                            disabled={editFormData?.status === 'İptal (Hasta)'}
                                             onChange={handleEditFormChange}
-                                            className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none"
+                                            className={`w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none ${editFormData?.status === 'İptal (Hasta)' ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         >
                                             <option value="normal">Normal</option>
                                             <option value="acil">Acil</option>
@@ -1154,8 +1165,9 @@ function AppointmentListPageContent() {
                                             type="date"
                                             id="date"
                                             value={editFormData?.date || ''}
+                                            disabled={editFormData?.status === 'İptal (Hasta)'}
                                             onChange={handleEditFormChange}
-                                            className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none dark:scheme-dark"
+                                            className={`w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none dark:scheme-dark ${editFormData?.status === 'İptal (Hasta)' ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         />
                                     </div>
                                     <div className="space-y-1.5">
@@ -1163,8 +1175,9 @@ function AppointmentListPageContent() {
                                         <select
                                             id="time"
                                             value={editFormData?.time || ''}
+                                            disabled={editFormData?.status === 'İptal (Hasta)'}
                                             onChange={handleEditFormChange}
-                                            className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none dark:scheme-dark"
+                                            className={`w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none dark:scheme-dark ${editFormData?.status === 'İptal (Hasta)' ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         >
                                             <option value="">Seçiniz</option>
                                             {generateTimeSlots().map(slot => (
@@ -1177,13 +1190,13 @@ function AppointmentListPageContent() {
                                         <select
                                             id="status"
                                             value={editFormData?.status || 'Bekleniyor'}
+                                            disabled={editFormData?.status === 'İptal (Hasta)'}
                                             onChange={handleEditFormChange}
-                                            className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none"
+                                            className={`w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 outline-none ${editFormData?.status === 'İptal (Hasta)' ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         >
                                             <option value="Bekleniyor">Bekleniyor</option>
-                                            <option value="Tamamlandı">Tamamlandı</option>
                                             <option value="Gelmedi">Gelmedi</option>
-                                            <option value="İptal">İptal</option>
+                                            <option value="Tamamlandı">Tamamlandı</option>
                                         </select>
                                     </div>
                                 </div>
@@ -1198,11 +1211,12 @@ function AppointmentListPageContent() {
                                 <textarea
                                     id="notes"
                                     value={editFormData?.notes || ''}
+                                    disabled={editFormData?.status === 'İptal (Hasta)'}
                                     onChange={handleEditFormChange}
                                     placeholder="Hastanın şikayeti veya ek notlar..."
                                     maxLength={1000}
                                     rows={3}
-                                    className="w-full p-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 resize-none outline-none"
+                                    className={`w-full p-3 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500/20 resize-none outline-none ${editFormData?.status === 'İptal (Hasta)' ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                 />
                             </div>
                         </div>
@@ -1220,6 +1234,16 @@ function AppointmentListPageContent() {
                                         </div>
                                     </div>
                                 )}
+                                {selectedAppointment?.status === 'İptal (Hasta)' && selectedAppointment?.cancelled_at && (
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-[10px] font-bold text-red-400 dark:text-red-500 uppercase tracking-widest">Randevu İptal Tarihi</span>
+                                        <div className="flex items-center gap-2 bg-red-50 dark:bg-red-900/10 px-2.5 py-1 rounded-lg border border-red-100 dark:border-red-900/20 shadow-sm text-[11px] font-semibold text-red-600 dark:text-red-400">
+                                            <span>{new Date(selectedAppointment.cancelled_at).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })}</span>
+                                            <span className="w-px h-3 bg-red-200 dark:bg-red-800" />
+                                            <span>{new Date(selectedAppointment.cancelled_at).toLocaleTimeString('tr-TR', { timeZone: 'Europe/Istanbul', hour: '2-digit', minute: '2-digit' })}</span>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="flex flex-col gap-0.5">
                                     <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Düzenleyen</span>
                                     <div className="flex items-center gap-2 bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 px-2.5 py-1 rounded-lg border border-teal-100 dark:border-teal-500/20 text-[11px] font-bold uppercase tracking-tight shadow-sm">
@@ -1231,7 +1255,11 @@ function AppointmentListPageContent() {
                                 <Button variant="outline" onClick={handleCloseEditModal} className="h-10 px-6 font-bold text-sm rounded-lg">
                                     İptal
                                 </Button>
-                                <Button onClick={handleUpdate} className="bg-teal-600 hover:bg-teal-700 text-white h-10 px-6 shadow-lg shadow-teal-500/20 gap-2 font-bold text-sm rounded-lg">
+                                <Button
+                                    onClick={handleUpdate}
+                                    disabled={editFormData?.status === 'İptal (Hasta)'}
+                                    className={`bg-teal-600 hover:bg-teal-700 text-white h-10 px-6 shadow-lg shadow-teal-500/20 gap-2 font-bold text-sm rounded-lg ${editFormData?.status === 'İptal (Hasta)' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
                                     <Save size={16} /> Kaydet
                                 </Button>
                             </div>
